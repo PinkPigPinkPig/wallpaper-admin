@@ -1,5 +1,5 @@
 "use client";
-import { Menu } from "antd";
+import { Menu, Button } from "antd";
 import Sider from "antd/es/layout/Sider";
 import { useMemo, useState } from "react";
 import { IMenuItem, menus } from "@/data/paths";
@@ -9,11 +9,14 @@ import Link, {
 } from "@/components/ui/Link";
 import Show from "@/components/ui/Show";
 import Title from "antd/es/typography/Title";
+import { useAuth } from "@/hooks/useAuth";
+import { LogoutOutlined } from "@ant-design/icons";
 
 function Sidebar() {
   const [collapsed, setCollapsed] =
     useState(false);
   const pathname = usePathname();
+  const { logout } = useAuth();
   const splitPathname = pathname.split("/");
   const defaultOpenKeys = splitPathname
     ? "/" + splitPathname[1]
@@ -79,7 +82,7 @@ function Sidebar() {
   return (
     <div className="max-w-66">
       <Sider
-        className="min-h-screen h-full sticky left-0 top-0 z-20"
+        className="min-h-screen h-full sticky left-0 top-0 z-20 flex flex-col"
         collapsed={collapsed}
         onCollapse={(value) =>
           setCollapsed(value)
@@ -106,11 +109,22 @@ function Sidebar() {
             mode="inline"
             selectedKeys={[...pathSelected]}
             items={transformedMenus}
-            className="w-full"
+            className="w-full flex-1"
             openKeys={openKeys}
             onOpenChange={onOpenChange}
           />
         </Show>
+        <div className="p-4 border-t border-gray-600">
+          <Button
+            type="text"
+            icon={<LogoutOutlined />}
+            onClick={logout}
+            className="w-full text-white hover:text-red-400"
+            size="large"
+          >
+            {!collapsed && "Logout"}
+          </Button>
+        </div>
       </Sider>
     </div>
   );

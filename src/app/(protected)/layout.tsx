@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import RootStyleRegistry from '@/layouts/RootStyleRegistry';
 import HeaderProvider from '@/context/header/HeaderProvider';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export const metadata: Metadata = {
   title: 'Wallpaper',
@@ -14,7 +15,9 @@ type TProps = {
 export default async function RootLayout({ children }: Readonly<TProps>) {
   return (
     <HeaderProvider>
-      <RootStyleRegistry>{children}</RootStyleRegistry>
+      <RootStyleRegistry>
+        <ProtectedRoute>{children}</ProtectedRoute>
+      </RootStyleRegistry>
     </HeaderProvider>
   );
 }
