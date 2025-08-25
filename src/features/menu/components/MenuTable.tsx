@@ -201,7 +201,7 @@ const MenuTable = () => {
         columns={columns}
         dataSource={data?.data}
         total={data?.totalItems}
-      //   onClickRow={onRowClick}
+        onClickRow={onRowClick}
       />
     );
   }

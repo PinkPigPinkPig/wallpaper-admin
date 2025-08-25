@@ -1,12 +1,14 @@
 import API from '@/lib/service';
-import {  handleLogout, TAuthToken } from '@/lib/service/utility';
+import { handleLogout, TAuthToken } from '@/lib/service/utility';
 import { TLoginPayLoad, TLoginResponse, TRefreshTokenPayLoad, TUser } from '../data/type';
+import { getToken, getUser } from '@/lib/auth/localStorage';
 
 class AuthService {
-  private static basePath = '/api/v1/admin/auth';
+  private static basePath = '/auth';
 
   static login = (payload: TLoginPayLoad) => {
-    return API.post<TLoginResponse>(`${AuthService.basePath}`, payload);
+    console.log("payload", payload);
+    return API.post<TLoginResponse>(`${AuthService.basePath}/login`, payload);
   };
 
   static refreshToken = (config?: TRefreshTokenPayLoad) => {
@@ -14,28 +16,25 @@ class AuthService {
   };
 
   static getTokenFromCookie = async (): Promise<TAuthToken> => {
-    const res = await fetch('/api/auth/token');
-
-    if (!res.ok) {
+    const token = getToken();
+    if (!token) {
       await handleLogout();
-      throw new Error('Failed to fetch token');
+      throw new Error('No token found');
     }
-    const resData = await res.clone().json();
-
-    return resData;
+    return {
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      expiresIn: token.expiresAt?.toString(),
+    };
   };
 
   static getMeFromCookie = async (): Promise<TUser> => {
-    const res = await fetch('/api/auth/me');
-
-    if (!res.ok) {
+    const user = getUser();
+    if (!user) {
       await handleLogout();
-      throw new Error('Failed to get me');
+      throw new Error('No user found');
     }
-
-    const resData = await res.clone().json();
-
-    return JSON.parse(resData);
+    return user;
   };
 }
 

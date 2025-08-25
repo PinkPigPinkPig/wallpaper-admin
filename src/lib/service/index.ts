@@ -19,13 +19,23 @@ class API {
       'Content-Type': 'application/json',
     };
 
-    // if (!url.includes('auth') || url.includes('auth/me')) {
-    //   const authToken = await queryClient.fetchQuery({
-    //     queryKey: [AUTH.TOKEN],
-    //     queryFn: () => AuthService.getTokenFromCookie(),
-    //   });
-    //   headers['Authorization'] = `Bearer ${authToken.accessToken}`;
-    // }
+    // Don't add authorization header for auth endpoints (login, refresh, etc.)
+    // Only add for protected endpoints
+    const isAuthEndpoint = url.includes('auth/login') || url.includes('auth/refresh');
+    const isProtectedEndpoint = !url.includes('auth') || url.includes('auth/me');
+    
+    if (!isAuthEndpoint && isProtectedEndpoint) {
+      try {
+        const authToken = await queryClient.fetchQuery({
+          queryKey: [AUTH.TOKEN],
+          queryFn: () => AuthService.getTokenFromCookie(),
+        });
+        headers['Authorization'] = `Bearer ${authToken.accessToken}`;
+      } catch {
+        // If no token is available, don't add authorization header
+        console.log('No auth token available for:', url);
+      }
+    }
 
     return { ...headers, ...customHeaders };
   }
@@ -34,36 +44,36 @@ class API {
     const response = await fetchWithTimeout(url, options, API.timeout);
 
     const data = await parseJSON(response);
-    // if (!response.ok) {
-    //   if (data.status !== 401 && (!data.errorCode || !Errors[data.errorCode as keyof typeof Errors])) {
-    //     postMessageHandler({
-    //       text: data.message || 'Something went wrong',
-    //       type: 'error',
-    //       id: crypto.randomUUID()
-    //     });
-    //   }
+    if (!response.ok) {
+      if (data.status !== 401 && (!data.errorCode || !Errors[data.errorCode as keyof typeof Errors])) {
+        postMessageHandler({
+          text: data.message || 'Something went wrong',
+          type: 'error',
+          id: crypto.randomUUID()
+        });
+      }
 
-    //   if (stopRefresh) {
-    //     handleLogout();
-    //     throw new Error('Unauthorized');
-    //   }
+      if (stopRefresh) {
+        handleLogout();
+        throw new Error('Unauthorized');
+      }
 
-    //   if (
-    //     data.status === 401 &&
-    //     data.errorCode === 'TOKEN_EXPIRED' &&
-    //     (!url.includes('admin/auth') || url.includes('admin/auth/me'))
-    //   ) {
-    //     const response = await handleRefreshToken();
-    //     const headers: HeadersInit = options.headers ?? { Authorization: '' };
-    //     headers['Authorization' as keyof HeadersInit] = `Bearer ${response?.token}`;
-    //     if (document && localStorage.getItem('fingerprint')) {
-    //       headers['X-Visitor-ID' as keyof HeadersInit] = localStorage.getItem('fingerprint') || '';
-    //     }
-    //     return API.request(url, { ...options, headers }, true);
-    //   }
+      if (
+        data.status === 401 &&
+        data.errorCode === 'TOKEN_EXPIRED' &&
+        (!url.includes('admin/auth') || url.includes('admin/auth/me'))
+      ) {
+        const response = await handleRefreshToken();
+        const headers: HeadersInit = options.headers ?? { Authorization: '' };
+        headers['Authorization' as keyof HeadersInit] = `Bearer ${response?.token}`;
+        if (document && localStorage.getItem('fingerprint')) {
+          headers['X-Visitor-ID' as keyof HeadersInit] = localStorage.getItem('fingerprint') || '';
+        }
+        return API.request(url, { ...options, headers }, true);
+      }
 
-    //   throw data;
-    // }
+      throw data;
+    }
 
     return data;
   }

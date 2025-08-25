@@ -1,7 +1,7 @@
-import { clearToken, storeRefreshToken, storeToken, storeUser } from '../auth';
 import { Errors } from '@/data/constants';
 import queryClient from '../react-query/query.instance';
 import AuthService from '@/features/auth/services';
+import { clearToken, storeToken, storeRefreshToken, storeUser } from '@/lib/auth/localStorage';
 
 export const AUTH = {
   TOKEN: 'TOKEN',
@@ -18,7 +18,7 @@ export interface IResponseError<T, E = typeof Errors> {
 export type TAuthToken = {
   accessToken: string;
   refreshToken: string;
-  refreshTokenExpire?: string;
+  expiresIn?: string;
 };
 
 export type TData = Record<string, unknown>;
@@ -51,7 +51,7 @@ const parseJSON = async (response: Response) => {
 };
 
 const handleLogout = async () => {
-  await clearToken();
+  clearToken();
   localStorage.clear();
   sessionStorage.clear();
   queryClient.invalidateQueries({ queryKey: [AUTH.TOKEN] });
@@ -115,20 +115,22 @@ const handleRefreshToken = async (): Promise<Record<string, unknown> | null> => 
     ]);
 
     storeToken({
-      token: response.token || '',
-      remember: !!token.refreshTokenExpire,
-      refreshTokenExpires: Number(response.refreshTokenExpires),
+      accessToken: response.accessToken || '',
+      refreshToken: response.refreshToken || '',
+      expiresIn: Number(response.expiresIn),
+      remember: !!token.refreshToken,
     });
     storeRefreshToken({
-      token: response.refreshToken || '',
-      remember: !!token.refreshTokenExpire,
-      refreshTokenExpires: Number(response.refreshTokenExpires),
+      accessToken: response.accessToken || '',
+      refreshToken: response.refreshToken || '',
+      expiresIn: Number(response.expiresIn),
+      remember: !!token.refreshToken,
     });
     if (me) {
       storeUser({
         user: me,
-        remember: !!token.refreshTokenExpire,
-        refreshTokenExpires: Number(response.refreshTokenExpires),
+        remember: !!token.refreshToken,
+        expiresIn: Number(response.expiresIn),
       });
     }
   }

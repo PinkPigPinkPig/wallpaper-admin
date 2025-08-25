@@ -1,9 +1,7 @@
 export type TUser = {
   id: string;
-  name: string;
-  email: string;
+  username: string;
   createdAt: string;
-  updatedAt: string;
 };
 
 export type TLoginPayLoad = {
@@ -12,9 +10,9 @@ export type TLoginPayLoad = {
 };
 
 export type TLoginResponse = {
-  token: string;
+  accessToken: string;
   refreshToken: string;
-  refreshTokenExpires: number;
+  expiresIn: number;
   user: TUser;
 };
 

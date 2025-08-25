@@ -1,14 +1,11 @@
-import { clearToken } from '@/lib/auth';
-import { NextResponse } from 'next/server';
-
 export async function POST() {
   try {
-    await clearToken();
-    return NextResponse.json({ success: true });
+    // localStorage will be cleared on the client side
+    return Response.json({ success: true });
   } catch (error) {
     console.error('Logout error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
+    return Response.json(
+      { error: 'Logout failed' },
       { status: 500 }
     );
   }

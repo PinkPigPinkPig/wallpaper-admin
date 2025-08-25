@@ -3,6 +3,7 @@ import { RqProvider } from '@/lib/react-query/rq.provider';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
 import type { Metadata } from 'next';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -22,7 +23,9 @@ export default async function RootLayout({ children }: Readonly<TProps>) {
         <RqProvider>
           <AntdRegistry>
             <ConfigProvider theme={theme}>
-              <main>{children}</main>
+              <AuthGuard>
+                <main>{children}</main>
+              </AuthGuard>
             </ConfigProvider>
           </AntdRegistry>
         </RqProvider>
