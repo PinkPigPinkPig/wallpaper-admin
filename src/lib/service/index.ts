@@ -5,13 +5,15 @@ import queryClient from '../react-query/query.instance';
 import { postMessageHandler } from '@/components/ui/ToastMessage';
 
 class API {
-  private static baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  private static baseURL = 'https://freshness-wallpaper.xyz/api/v1';
   private static timeout = parseInt(process.env.NEXT_PUBLIC_API_TIME_OUT ?? '5000', 10);
   private static abortControllers: Record<string, AbortController> = {};
 
   static configure(baseURL: string, timeout: number) {
     this.baseURL = baseURL;
     this.timeout = timeout;
+    console.log('baseURL', baseURL);
+    console.log('timeout', timeout);
   }
 
   static async getHeaders(url: string, customHeaders: HeadersInit = {}, isFormData = false) {
