@@ -9,3 +9,8 @@ export type TCategory = {
   totalWallpaper: number;
   updated: string;
 };
+
+export type TSaveCategoryPayload = {
+  name: string;
+  thumbUrl: string;
+};

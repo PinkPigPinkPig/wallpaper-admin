@@ -1,17 +1,15 @@
+import { TMimeType } from "@/data/type";
+
 export const WALLPAPER = {
   LIST: 'WALLPAPER_LIST',
-};
-
-export type WallpaperMime = {
-  type: 'WallpaperMime.Static';
-  value: string;
+  DETAIL: 'WALLPAPER_DETAIL',
 };
 
 export type TWallpaper = {
   id: number;
   downloads: number;
   featured: number;
-  mime: WallpaperMime;
+  mime: TMimeType;
   name: string;
   resolution: string;
   resourceUrl: string;
@@ -23,4 +21,15 @@ export type TWallpaper = {
   category_id: number;
   categoryName: string;
   numberOfMe: number;
+};
+
+export type TSaveWallpaperPayload = {
+  name: string;
+  categoryId: number;
+  tags: string;
+  resolution: string;
+  size: string;
+  mime: TMimeType;
+  resourceUrl: string;
+  thumbUrl: string;
 };

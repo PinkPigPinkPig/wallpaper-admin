@@ -14,10 +14,13 @@ class API {
     this.timeout = timeout;
   }
 
-  static async getHeaders(url: string, customHeaders: HeadersInit = {}) {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+  static async getHeaders(url: string, customHeaders: HeadersInit = {}, isFormData = false) {
+    const headers: HeadersInit = {};
+
+    // Only set Content-Type for non-FormData requests
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     // Don't add authorization header for auth endpoints (login, refresh, etc.)
     // Only add for protected endpoints
@@ -133,12 +136,16 @@ class API {
   };
 
   static post = async <R>(url: string, data: unknown, { headers, ...config }: RequestInit = {}): Promise<R> => {
-    const configHeader = await API.getHeaders(url, headers);
+    const isFormData = data instanceof FormData;
+    const configHeader = await API.getHeaders(url, headers, isFormData);
+
+    // Handle FormData differently - don't stringify it
+    const body = data instanceof FormData ? data : JSON.stringify(data);
 
     const options: RequestInit = {
       method: 'POST',
       headers: configHeader,
-      body: JSON.stringify(data),
+      body,
       ...config,
     };
 

@@ -1,5 +1,5 @@
 import { TListResponse } from "@/data/type";
-import { TMenu } from "../data/type";
+import { TMenu, TSaveMenuPayload } from "../data/type";
 import API from "@/lib/service";
 
 export class MenuServices {
@@ -12,6 +12,14 @@ export class MenuServices {
         const url = `${MenuServices.basePath}?${queryString}`;
 
         return API.get<TListResponse<TMenu[]>>(url);
+    }
+
+    static addMenu(payload: TSaveMenuPayload) {
+        return API.post<TMenu>(`${MenuServices.basePath}`, payload);
+    }
+
+    static getMenuDetail(id: number) {
+        return API.get<TMenu>(`${MenuServices.basePath}/${id}`);
     }
 }
 

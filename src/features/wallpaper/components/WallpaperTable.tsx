@@ -5,10 +5,11 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import React from "react";
+import React, { useRef, useState } from "react";
 import useGetWallpaperList from "../hooks/useGetWallpaperList";
-import { Dropdown, Flex, MenuProps } from "antd";
-import { TWallpaper, WallpaperMime } from "../data/type";
+import { Dropdown, Flex, MenuProps, Modal } from "antd";
+import { TWallpaper } from "../data/type";
+import { TMimeType, TFormRef } from "@/data/type";
 import Link, {
   TLinkHref,
 } from "@/components/ui/Link";
@@ -17,10 +18,21 @@ import Show from "@/components/ui/Show";
 import { MoreOutlined } from "@ant-design/icons";
 import CommonTable from "@/components/ui/CommonTable";
 import Image from "next/image";
+import MenuForm, { TMenuForm } from "@/features/menu/components/form/MenuForm";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { postMessageHandler } from "@/components/ui/ToastMessage";
+import { TSaveMenuPayload } from "@/features/menu/data/type";
+import { IResponseError } from '@/lib/service/utility';
+import MenuServices from "@/features/menu/services";
 
 const WallpaperTable = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const menuFormRef = useRef<TFormRef>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedWallpaper, setSelectedWallpaper] = useState<TWallpaper | null>(null);
 
   const { currentPage, currentPageSize } =
     useURLQueries();
@@ -41,8 +53,76 @@ const WallpaperTable = () => {
     console.log(record);
   };
 
+  const handleCreateMenuButtonClick = (
+    record: TWallpaper
+  ) => {
+    setSelectedWallpaper(record);
+    setIsModalOpen(true);
+  };
+
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+    setSelectedWallpaper(null);
+  };
+
+  const onSuccess = () => {
+    postMessageHandler({
+      id: "successfully",
+      type: "success",
+      text: "Successfully created menu",
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["menu-list"],
+    });
+    setIsModalOpen(false);
+    setSelectedWallpaper(null);
+  };
+
+  const onError = (error: IResponseError<unknown>) => {
+    console.error('Error creating menu:', error);
+    postMessageHandler({
+      id: "error",
+      type: "error",
+      text: "Failed to create menu. Please try again.",
+    });
+  };
+
+  const { mutate: createMenu, isPending: isCreatingMenu } = useMutation({
+    mutationFn: (payload: TSaveMenuPayload) => MenuServices.addMenu(payload),
+    onSuccess,
+    onError,
+  });
+
+  const handleMenuSubmit = (values: TMenuForm) => {
+    if (!selectedWallpaper) return;
+
+    const payload: TSaveMenuPayload = {
+      ...values,
+      wallpaper_id: selectedWallpaper.id,
+      category_id: selectedWallpaper.category_id,
+    };
+
+    createMenu(payload);
+  };
+
   const actions = (record: TWallpaper) => {
     const actions = [
+      {
+        key: "3",
+        label: (
+          <Flex
+            gap={8}
+            style={{ width: 200, height: 40 }}
+            align="center"
+            justify="start"
+            onClick={() =>
+              handleCreateMenuButtonClick(record)
+            }
+          >
+            Create Menu
+          </Flex>
+        ),
+      },
       {
         key: "1",
         label: (
@@ -63,7 +143,7 @@ const WallpaperTable = () => {
         ),
       },
       {
-        key: "3",
+        key: "2",
         label: (
           <Flex
             gap={8}
@@ -78,6 +158,7 @@ const WallpaperTable = () => {
           </Flex>
         ),
       },
+      
     ] as MenuProps["items"];
 
     return actions;
@@ -101,7 +182,14 @@ const WallpaperTable = () => {
     {
       title: "Thumbnail",
       dataIndex: "thumbUrl",
-      render: (thumbUrl) => <Image src={thumbUrl} alt="thumbnail" width={100} height={100} />,
+      render: (thumbUrl) => (
+        <Image
+          src={thumbUrl}
+          alt="thumbnail"
+          width={100}
+          height={100}
+        />
+      ),
       key: "thumbUrl",
       width: 171,
     },
@@ -129,7 +217,7 @@ const WallpaperTable = () => {
     {
       title: "Type",
       dataIndex: "mime",
-      render: (mime: WallpaperMime) => mime.value,
+      render: (mime: TMimeType) => mime.value,
       key: "mime",
       width: 171,
     },
@@ -166,13 +254,50 @@ const WallpaperTable = () => {
   ];
 
   return (
-    <CommonTable<TWallpaper>
-      loading={isLoading}
-      columns={columns}
-      dataSource={data?.data}
-      total={data?.totalItems}
-      onClickRow={onRowClick}
-    />
+    <>
+      <CommonTable<TWallpaper>
+        loading={isLoading}
+        columns={columns}
+        dataSource={data?.data}
+        total={data?.totalItems}
+        onClickRow={onRowClick}
+      />
+
+      <Modal
+        title="Create Menu"
+        open={isModalOpen}
+        onCancel={handleModalCancel}
+        footer={null}
+        width={600}
+        destroyOnClose
+      >
+        <MenuForm
+          ref={menuFormRef}
+          onSubmit={handleMenuSubmit}
+        />
+        <div style={{ marginTop: 16, textAlign: 'right' }}>
+          <button
+            onClick={handleModalCancel}
+            style={{ marginRight: 8, padding: '8px 16px' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => menuFormRef.current?.submit()}
+            disabled={isCreatingMenu}
+            style={{ 
+              padding: '8px 16px', 
+              backgroundColor: '#1890ff', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: 4 
+            }}
+          >
+            {isCreatingMenu ? 'Creating...' : 'Create Menu'}
+          </button>
+        </div>
+      </Modal>
+    </>
   );
 };
 

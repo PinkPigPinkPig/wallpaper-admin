@@ -1,6 +1,6 @@
 import { TListResponse } from "@/data/type";
 import API from "@/lib/service";
-import { TCategory } from "../data/type";
+import { TCategory, TSaveCategoryPayload } from "../data/type";
 
 class CategoryServices {
   private static basePath = "/wallpaper/category";
@@ -11,6 +11,14 @@ class CategoryServices {
     const url = `${CategoryServices.basePath}?${queryString}`;
 
     return API.get<TListResponse<TCategory[]>>(url);
+  }
+
+  static addCategory(payload: TSaveCategoryPayload) {
+    return API.post<TCategory>(`${CategoryServices.basePath}`, payload);
+  }
+
+  static getCategoryDetail(id: number) {
+    return API.get<TCategory>(`${CategoryServices.basePath}/${id}`);
   }
 }
 

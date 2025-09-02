@@ -7,7 +7,7 @@ export const AUTH = {
   TOKEN: 'TOKEN',
 };
 
-export interface IResponseError<T, E = typeof Errors> {
+export interface IResponseError<T, E = Errors> {
   data: T;
   errorCode?: E;
   message?: string;
