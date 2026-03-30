@@ -74,6 +74,8 @@ export function storeAllowedMenuPaths(request: TStoreAllowedMenuPaths) {
 }
 
 export function getToken(): { accessToken: string; refreshToken: string; expiresAt: number | null } | null {
+  if (typeof window === 'undefined') return null;
+
   try {
     const tokenData = localStorage.getItem('tokens');
     if (!tokenData) {
@@ -106,6 +108,8 @@ export function getToken(): { accessToken: string; refreshToken: string; expires
 }
 
 export function getRefreshToken(): { refreshToken: string; expiresAt: number | null } | null {
+  if (typeof window === 'undefined') return null;
+
   try {
     const refreshTokenData = localStorage.getItem('refreshToken');
     if (!refreshTokenData) return null;
@@ -126,6 +130,8 @@ export function getRefreshToken(): { refreshToken: string; expiresAt: number | n
 }
 
 export function getUser(): TUser | null {
+  if (typeof window === 'undefined') return null;
+
   try {
     const userData = localStorage.getItem('user');
     if (!userData) {
@@ -151,6 +157,8 @@ export function getUser(): TUser | null {
 }
 
 export function getAllowedMenuPaths(): string[] | null {
+  if (typeof window === 'undefined') return null;
+
   try {
     const menuData = localStorage.getItem('allowedMenuPaths');
     if (!menuData) return null;
@@ -171,6 +179,8 @@ export function getAllowedMenuPaths(): string[] | null {
 }
 
 export function clearToken() {
+  if (typeof window === 'undefined') return;
+
   console.log('Clearing all authentication data from localStorage');
   localStorage.removeItem('tokens');
   localStorage.removeItem('refreshToken');
