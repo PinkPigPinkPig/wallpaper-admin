@@ -57,3 +57,41 @@ test.describe('Global Error Handler', () => {
     expect(criticalErrors).toHaveLength(0);
   });
 });
+
+test.describe('Logout', () => {
+  test('logout clears tokens and redirects to signin', async ({ page }) => {
+    // Set valid auth tokens in localStorage to simulate logged-in state
+    // getToken() checks expiresAt — must be in the future
+    const futureExpiry = Date.now() + 1000 * 60 * 60; // 1 hour from now
+    await page.goto('http://localhost:3005/auth/signin');
+    await page.evaluate((futureExpiry) => {
+      localStorage.setItem('fingerprint', 'test-fingerprint');
+      localStorage.setItem('tokens', JSON.stringify({
+        accessToken: 'test-access-token',
+        refreshToken: 'test-refresh-token',
+        expiresAt: futureExpiry,
+        remember: true,
+      }));
+      localStorage.setItem('user', JSON.stringify({
+        user: { id: 1, username: 'admin' },
+        expiresAt: futureExpiry,
+      }));
+    }, futureExpiry);
+
+    // Navigate to admin page — should load since tokens are valid
+    await page.goto('http://localhost:3005/admin/wallpaper');
+
+    // Wait for protected content to fully load
+    await page.waitForSelector('.ant-table', { timeout: 10000 });
+
+    // Click the Logout button in the sidebar (aria-label approach)
+    await page.locator('button[aria-label="logout"], button:has-text("Logout")').click();
+
+    // Wait for redirect to signin page
+    await expect(page).toHaveURL(/\/auth\/signin/, { timeout: 5000 });
+
+    // Tokens should be cleared
+    const tokens = await page.evaluate(() => localStorage.getItem('tokens'));
+    expect(tokens).toBeNull();
+  });
+});
