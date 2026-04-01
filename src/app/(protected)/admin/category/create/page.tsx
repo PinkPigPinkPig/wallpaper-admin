@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postMessageHandler } from "@/components/ui/ToastMessage";
+import { showSuccessToast } from '@/lib/error';
 import { TCategoryForm } from "@/features/category/components/form/CategoryForm";
 import { CATEGORY, TSaveCategoryPayload } from "@/features/category/data/type";
 import { IResponseError } from '@/lib/service/utility';
@@ -50,11 +51,7 @@ export default function PageCreateCategory() {
   };
 
   const onSuccess = () => {
-    postMessageHandler({
-      id: "successfully",
-      type: "success",
-      text: "Successfully saved",
-    });
+    showSuccessToast('save', CATEGORY.LIST, 'Category saved');
     queryClient.invalidateQueries({
       queryKey: [
         CATEGORY.LIST,

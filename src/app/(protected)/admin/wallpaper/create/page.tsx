@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { Errors } from '@/data/constants';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postMessageHandler } from "@/components/ui/ToastMessage";
+import { showSuccessToast } from '@/lib/error';
 import { TForm } from "@/features/wallpaper/components/form/WallpaperForm";
 import { WALLPAPER, TSaveWallpaperPayload } from "@/features/wallpaper/data/type";
 import { IResponseError } from '@/lib/service/utility';
@@ -52,11 +53,7 @@ export default function PageCreateWallpaper() {
   };
 
   const onSuccess = () => {
-    postMessageHandler({
-      id: "successfully",
-      type: "success",
-      text: "Successfully saved",
-    });
+    showSuccessToast('save', WALLPAPER.LIST, 'Wallpaper saved');
     queryClient.invalidateQueries({
       queryKey: [
         WALLPAPER.LIST,

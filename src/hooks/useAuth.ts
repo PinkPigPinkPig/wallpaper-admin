@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { message } from 'antd';
+import { showSuccessToast } from '@/lib/error';
 import { TUser } from '@/features/auth/data/type';
 import { storeToken, storeUser, clearToken, getUser, isAuthenticated } from '@/lib/auth/localStorage';
 
@@ -76,7 +77,7 @@ export const useAuth = () => {
 
       // Update state and wait a bit before navigation to ensure localStorage is set
       setUser(data.user);
-      message.success('Login successful!');
+      showSuccessToast('login');
       
       console.log('Login successful, navigating to admin/wallpaper');
       
@@ -98,7 +99,7 @@ export const useAuth = () => {
       await fetch('/api/auth/logout', { method: 'POST' });
       clearToken();
       setUser(null);
-      message.success('Logged out successfully');
+      showSuccessToast('logout');
       router.push('/auth/signin');
     } catch (error) {
       console.error('Logout error:', error);

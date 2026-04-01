@@ -20,7 +20,7 @@ import CommonTable from "@/components/ui/CommonTable";
 import Image from "next/image";
 import MenuForm, { TMenuForm } from "@/features/menu/components/form/MenuForm";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { postMessageHandler } from "@/components/ui/ToastMessage";
+import { showSuccessToast } from '@/lib/error';
 import { TSaveMenuPayload } from "@/features/menu/data/type";
 import { IResponseError } from '@/lib/service/utility';
 import MenuServices from "@/features/menu/services";
@@ -66,11 +66,7 @@ const WallpaperTable = () => {
   };
 
   const onSuccess = () => {
-    postMessageHandler({
-      id: "successfully",
-      type: "success",
-      text: "Successfully created menu",
-    });
+    showSuccessToast('create', 'menu-list', 'Menu created');
     queryClient.invalidateQueries({
       queryKey: ["menu-list"],
     });
