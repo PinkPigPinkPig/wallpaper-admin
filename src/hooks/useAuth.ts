@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { message } from 'antd';
-import { showSuccessToast } from '@/lib/error';
+import { showSuccessToast, showToast } from '@/lib/error';
 import { TUser } from '@/features/auth/data/type';
 import { storeToken, storeUser, clearToken, getUser, isAuthenticated } from '@/lib/auth/localStorage';
 
@@ -89,7 +88,7 @@ export const useAuth = () => {
       return data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      message.error(errorMessage);
+      showToast('server', errorMessage);
       throw error;
     }
   };
@@ -103,7 +102,7 @@ export const useAuth = () => {
       router.push('/auth/signin');
     } catch (error) {
       console.error('Logout error:', error);
-      message.error('Logout failed');
+      showToast('server', 'Logout failed');
     }
   };
 

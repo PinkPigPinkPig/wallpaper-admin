@@ -20,7 +20,7 @@ import CommonTable from "@/components/ui/CommonTable";
 import Image from "next/image";
 import MenuForm, { TMenuForm } from "@/features/menu/components/form/MenuForm";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { showSuccessToast } from '@/lib/error';
+import { showSuccessToast, showToast } from '@/lib/error';
 import { TSaveMenuPayload } from "@/features/menu/data/type";
 import { IResponseError } from '@/lib/service/utility';
 import MenuServices from "@/features/menu/services";
@@ -76,11 +76,7 @@ const WallpaperTable = () => {
 
   const onError = (error: IResponseError<unknown>) => {
     console.error('Error creating menu:', error);
-    postMessageHandler({
-      id: "error",
-      type: "error",
-      text: "Failed to create menu. Please try again.",
-    });
+    showToast('server', 'Failed to create menu. Please try again.');
   };
 
   const { mutate: createMenu, isPending: isCreatingMenu } = useMutation({

@@ -8,8 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Errors } from '@/data/constants';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { postMessageHandler } from "@/components/ui/ToastMessage";
-import { showSuccessToast } from '@/lib/error';
+import { showSuccessToast, showToast } from '@/lib/error';
 import { TForm } from "@/features/wallpaper/components/form/WallpaperForm";
 import { WALLPAPER, TSaveWallpaperPayload } from "@/features/wallpaper/data/type";
 import { IResponseError } from '@/lib/service/utility';
@@ -114,11 +113,7 @@ export default function PageCreateWallpaper() {
       mutate(payload);
     } catch (error) {
       console.error('Form submission error:', error);
-      postMessageHandler({
-        id: "upload-error",
-        type: "error",
-        text: "Failed to upload files. Please try again.",
-      });
+      showToast('server', 'Failed to upload files. Please try again.');
     } finally {
       setIsUploading(false);
     }

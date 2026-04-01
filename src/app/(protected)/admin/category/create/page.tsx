@@ -8,8 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { postMessageHandler } from "@/components/ui/ToastMessage";
-import { showSuccessToast } from '@/lib/error';
+import { showSuccessToast, showToast } from '@/lib/error';
 import { TCategoryForm } from "@/features/category/components/form/CategoryForm";
 import { CATEGORY, TSaveCategoryPayload } from "@/features/category/data/type";
 import { IResponseError } from '@/lib/service/utility';
@@ -99,11 +98,7 @@ export default function PageCreateCategory() {
       mutate(payload);
     } catch (error) {
       console.error('Form submission error:', error);
-      postMessageHandler({
-        id: "upload-error",
-        type: "error",
-        text: "Failed to upload files. Please try again.",
-      });
+      showToast('server', 'Failed to upload files. Please try again.');
     } finally {
       setIsUploading(false);
     }

@@ -5,10 +5,11 @@ import Card from "antd/es/card/Card";
 import Form from "antd/es/form/Form";
 import FormItem from "antd/es/form/FormItem";
 import Input from "antd/es/input/Input";
-import { message, Spin } from "antd";
+import { Spin } from "antd";
 import { useRouter } from "next/navigation";
 import { menus } from "@/data/paths";
 import { useAuth } from "@/hooks/useAuth";
+import { showToast } from '@/lib/error';
 
 interface SignInFormValues {
   username: string;
@@ -24,7 +25,7 @@ const Page = () => {
   };
 
   const onError = (error: Error) => {
-    message.error(error.message || "Login failed");
+    showToast('server', error.message || 'Login failed');
   };
 
   const onFinish = async (values: SignInFormValues) => {
