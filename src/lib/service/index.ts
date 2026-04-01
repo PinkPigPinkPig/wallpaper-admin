@@ -50,10 +50,11 @@ class API {
     try {
       response = await fetchWithTimeout(url, options, API.timeout);
     } catch (err) {
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        showToast('network', err.message, { url });
-      } else {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'Request timed out') {
         showToast('timeout', 'Request timed out. Please try again.', { url });
+      } else {
+        showToast('network', message, { url });
       }
       throw err;
     }
@@ -61,7 +62,7 @@ class API {
     const data = await parseJSON(response);
     if (!response.ok) {
       if (data.status !== 401 && (!data.errorCode || !Errors[data.errorCode as keyof typeof Errors])) {
-        showToast('server', data.message, { url, status: data.status });
+        showToast('server', data.message as string, { url, status: data.status as number });
       }
 
       if (stopRefresh) {
