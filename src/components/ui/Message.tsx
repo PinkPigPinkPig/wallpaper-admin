@@ -1,11 +1,10 @@
 import { Flex } from 'antd';
-import Title, { TitleProps } from 'antd/es/typography/Title';
+import { TitleProps } from 'antd/es/typography/Title';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
   WarningFilled,
   InfoCircleFilled,
-  LoadingOutlined,
 } from '@ant-design/icons';
 
 type TProps = {
