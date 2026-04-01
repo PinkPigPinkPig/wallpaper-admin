@@ -4,6 +4,7 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
 import type { Metadata } from 'next';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import ToastMessageProvider from '@/components/ui/ToastMessageProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default async function RootLayout({ children }: Readonly<TProps>) {
             </ConfigProvider>
           </AntdRegistry>
         </RqProvider>
+        <ToastMessageProvider />
       </body>
     </html>
   );

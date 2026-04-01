@@ -3,13 +3,10 @@ import React from 'react';
 import { Avatar, Breadcrumb, Button, Dropdown, Flex, Layout, MenuProps, Typography, Tooltip } from 'antd';
 import Sidebar from './Sidebar';
 import { UserOutlined, DownOutlined, LogoutOutlined } from '@ant-design/icons';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useSetHeaderContent } from '@/context/header/HeaderProvider';
 import { usePathname } from 'next/navigation';
 import Show from '@/components/ui/Show';
-
-const ToastMessage = dynamic(() => import('@/components/ui/ToastMessage'), { ssr: false });
 
 const { Text } = Typography;
 
@@ -79,8 +76,6 @@ const RootStyleRegistry = ({ children }: Readonly<TProps>) => {
               {children}
             </Content>
           </Layout>
-
-          <ToastMessage />
         </Layout>
       </Show>
   );
