@@ -20,7 +20,7 @@ const ICONS: Record<string, React.ReactNode> = {
 };
 
 function Message({ type, text }: TProps) {
-  const icon = ICONS[type] ?? ICONS.secondary;
+  const icon = type ? (ICONS[type] ?? ICONS.secondary) : ICONS.secondary;
 
   return (
     <Flex align="center" gap={10}>
