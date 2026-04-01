@@ -2,7 +2,7 @@ import { AUTH, fetchWithTimeout, handleLogout, parseJSON, handleRefreshToken } f
 import { Errors } from '@/data/constants';
 import AuthService from '@/features/auth/services';
 import queryClient from '../react-query/query.instance';
-import { postMessageHandler } from '@/components/ui/ToastMessage';
+import { showToast } from '@/lib/error';
 
 class API {
   private static baseURL = 'https://freshness-wallpaper.xyz/api/v1';
@@ -46,16 +46,22 @@ class API {
   }
 
   private static async request<R>(url: string, options: RequestInit, stopRefresh = false): Promise<R> {
-    const response = await fetchWithTimeout(url, options, API.timeout);
+    let response: Response;
+    try {
+      response = await fetchWithTimeout(url, options, API.timeout);
+    } catch (err) {
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        showToast('network', err.message, { url });
+      } else {
+        showToast('timeout', 'Request timed out. Please try again.', { url });
+      }
+      throw err;
+    }
 
     const data = await parseJSON(response);
     if (!response.ok) {
       if (data.status !== 401 && (!data.errorCode || !Errors[data.errorCode as keyof typeof Errors])) {
-        postMessageHandler({
-          text: data.message || 'Something went wrong',
-          type: 'error',
-          id: crypto.randomUUID()
-        });
+        showToast('server', data.message, { url, status: data.status });
       }
 
       if (stopRefresh) {
