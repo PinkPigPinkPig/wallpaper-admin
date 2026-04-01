@@ -35,13 +35,6 @@ Deduplication keys for success toasts are intentionally distinct per action to a
 - `TOKEN_EXPIRED` with successful refresh — unchanged, silent
 - HTTP 401 with successful retry — unchanged, silent
 
-## Silent Errors (excluded)
-
-- `Errors.UNPROCESSABLE_ENTITY` — unchanged, no toast
-- `TOKEN_EXPIRED` with successful refresh — unchanged, silent
-- HTTP 401 with successful retry — unchanged, silent
-- Success toasts (e.g. "Successfully saved") — unchanged, handled per-component
-
 ## Deduplication
 
 Ant Design's `messageApi.open({ key })` handles deduplication automatically. The key is deterministic:
@@ -161,6 +154,7 @@ After the global handler is in place, replace scattered `postMessageHandler` cal
 | `src/hooks/useAuth.ts` | 101 | `showSuccessToast('logout')` |
 | `src/hooks/useAuth.ts` | 91 | `showToast('server', errorMessage)` |
 | `src/hooks/useAuth.ts` | 105 | `showToast('server', 'Logout failed')` |
+| `src/app/(public)/auth/signin/page.tsx` | 27 | `showToast('server', error.message \|\| 'Login failed')` |
 | `src/app/(protected)/admin/wallpaper/create/page.tsx` | 55 | `showSuccessToast('save', WALLPAPER.LIST, 'Wallpaper saved')` |
 | `src/app/(protected)/admin/wallpaper/create/page.tsx` | 120 | `showToast('server', 'Failed to upload files. Please try again.')` |
 | `src/app/(protected)/admin/category/create/page.tsx` | 53 | `showSuccessToast('save', CATEGORY.LIST, 'Category saved')` |
