@@ -1,21 +1,35 @@
-import { Space } from 'antd';
+import { Flex } from 'antd';
 import Title, { TitleProps } from 'antd/es/typography/Title';
-import Text from 'antd/es/typography/Text';
+import {
+  CheckCircleFilled,
+  CloseCircleFilled,
+  WarningFilled,
+  InfoCircleFilled,
+  LoadingOutlined,
+} from '@ant-design/icons';
 
 type TProps = {
   type: TitleProps['type'];
   text: string;
 };
 
+const ICONS: Record<string, React.ReactNode> = {
+  success: <CheckCircleFilled style={{ color: '#52c41a', fontSize: 20 }} />,
+  danger: <CloseCircleFilled style={{ color: '#ff4d4f', fontSize: 20 }} />,
+  warning: <WarningFilled style={{ color: '#faad14', fontSize: 20 }} />,
+  secondary: <InfoCircleFilled style={{ color: '#1677ff', fontSize: 20 }} />,
+};
+
 function Message({ type, text }: TProps) {
+  const icon = ICONS[type] ?? ICONS.secondary;
 
   return (
-    <Space align="center">
-      <Title level={5} type={type} className="m-0 mr-10 no-wrap">
+    <Flex align="center" gap={10}>
+      {icon}
+      <span style={{ fontSize: 15, color: '#262626', lineHeight: 1.4 }}>
         {text}
-      </Title>
-      <Text>{text}</Text>
-    </Space>
+      </span>
+    </Flex>
   );
 }
 
