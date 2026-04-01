@@ -2,6 +2,7 @@ import { Errors } from '@/data/constants';
 import queryClient from '../react-query/query.instance';
 import AuthService from '@/features/auth/services';
 import { clearToken, storeToken, storeRefreshToken, storeUser } from '@/lib/auth/localStorage';
+import { showToast } from '@/lib/error/toast';
 
 export const AUTH = {
   TOKEN: 'TOKEN',
@@ -51,6 +52,7 @@ const parseJSON = async (response: Response) => {
 };
 
 const handleLogout = async () => {
+  showToast('unauthorized', 'Session expired. Please log in again.');
   clearToken();
   localStorage.clear();
   sessionStorage.clear();
