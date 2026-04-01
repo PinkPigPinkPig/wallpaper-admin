@@ -94,16 +94,17 @@ export const useAuth = () => {
   };
 
   const logout = async () => {
+    clearToken();
+    setUser(null);
+
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      clearToken();
-      setUser(null);
       showSuccessToast('logout');
-      router.push('/auth/signin');
     } catch (error) {
-      console.error('Logout error:', error);
-      showToast('server', 'Logout failed');
+      console.error('Logout API error:', error);
     }
+
+    router.push('/auth/signin');
   };
 
   useEffect(() => {
