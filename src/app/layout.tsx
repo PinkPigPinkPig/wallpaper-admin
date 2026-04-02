@@ -27,10 +27,10 @@ export default async function RootLayout({ children }: Readonly<TProps>) {
               <AuthGuard>
                 <main>{children}</main>
               </AuthGuard>
+              <ToastMessageProvider />
             </ConfigProvider>
           </AntdRegistry>
         </RqProvider>
-        <ToastMessageProvider />
       </body>
     </html>
   );
