@@ -17,6 +17,10 @@ class WallpaperServices {
     return API.post<TWallpaper>(`${WallpaperServices.basePath}`, payload);
   }
 
+  static updateWallpaper(id: number, payload: TSaveWallpaperPayload) {
+    return API.put<TWallpaper>(`${WallpaperServices.basePath}/${id}`, payload);
+  }
+
   static getWallpaperDetail(id: number) {
     return API.get<TWallpaper>(`${WallpaperServices.basePath}/find-by/${id}`);
   }
