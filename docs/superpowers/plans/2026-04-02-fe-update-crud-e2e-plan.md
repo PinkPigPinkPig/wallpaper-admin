@@ -4,7 +4,7 @@
 
 **Goal:** Fix 2 BE orphaned file bugs, implement FE update CRUD for wallpaper/category/menu, write E2E Playwright suite against real backend.
 
-**Architecture:** Create page reused for update (same form, different mode). File uploads happen first, then update payload sent. E2E tests use Playwright with real API calls and sequential execution.
+**Architecture:** Create page reused for update (same form, different mode). File uploads happen first, then update payload sent. E2E tests use Playwright with real API calls and sequential execution. CRITICAL: UploadMedia must be fixed to display existing files from initialValues.
 
 **Tech Stack:** Next.js 15, NestJS 10, Prisma, Playwright, Ant Design 5, TanStack React Query 5
 
@@ -1473,3 +1473,1065 @@ Run: `npx playwright test e2e/menu.spec.ts --reporter=line`
 Expected: Tests pass
 
 - [ ] **Step 3: Commit**
+
+---
+
+# UI Improvement Plan — Comprehensive Ant Design 5 Overhaul
+
+> **For agentic workers:** Apply these UI tasks AFTER the feature tasks (0-16) or interleaved. These are visual-only changes that do not affect functionality.
+
+**Goal:** Polish the wallpaper-admin UI to a professional Ant Design 5 admin dashboard standard. All changes are non-breaking and visual-only.
+
+**Files touched:** 10 files
+- `src/lib/antd/theme.ts` — theme tokens
+- `src/app/(public)/auth/signin/page.tsx` — login page
+- `src/layouts/Sidebar.tsx` — navigation sidebar
+- `src/components/ui/CommonTable.tsx` — shared table
+- `src/features/wallpaper/components/WallpaperTable.tsx` — wallpaper table
+- `src/features/category/components/CategoryTable.tsx` — category table
+- `src/features/menu/components/MenuTable.tsx` — menu table
+- `src/app/(protected)/admin/wallpaper/create/page.tsx` — wallpaper create page
+- `src/components/form/UploadMedia.tsx` — upload component
+- `src/features/wallpaper/components/WallpaperTableFilter.tsx` — filter bar
+
+## Task UI-1: Ant Design Theme Tokens — Global Polish
+
+**File:** `src/lib/antd/theme.ts`
+
+- [ ] **Step 1: Read current theme file**
+Read: `src/lib/antd/theme.ts`
+
+- [ ] **Step 2: Add comprehensive theme tokens**
+
+Find the `theme` export (the object passed to `ConfigProvider`). Read the current content and add/merge the following tokens. Add a new `components` key to the existing config object:
+
+```ts
+// Find the existing configProviderConfig or theme export
+// Merge the following into it:
+
+const themeConfig = {
+  token: {
+    // ... existing tokens (borderRadius, colorPrimary, fontSize, etc.)
+    // ADD these new tokens:
+    borderRadius: 8,
+    borderRadiusLG: 12,
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    // Existing controlHeightLG: 48 is already set — keep it
+    // Existing fontSize: 16 is already set — keep it
+  },
+  components: {
+    Table: {
+      headerBg: '#fafafa',
+      rowHoverBg: '#f5f5f5',
+      headerBorderRadius: 0,
+      cellPaddingBlock: 16,
+      cellPaddingInline: 16,
+    },
+    Card: {
+      borderRadiusLG: 12,
+      paddingLG: 24,
+    },
+    Modal: {
+      borderRadiusLG: 12,
+    },
+    Form: {
+      labelMarginBottom: 8,
+    },
+    Input: {
+      borderRadius: 8,
+      controlHeight: 40,
+    },
+    Select: {
+      borderRadius: 8,
+      controlHeight: 40,
+    },
+    Button: {
+      borderRadius: 8,
+    },
+    Upload: {
+      borderRadius: 8,
+    },
+    Menu: {
+      itemBorderRadius: 8,
+      itemSelectedBg: 'rgba(52, 55, 179, 0.1)',
+      itemSelectedColor: '#3437B3',
+      itemHoverBg: 'rgba(52, 55, 179, 0.05)',
+    },
+    Dropdown: {
+      borderRadiusLG: 8,
+      paddingBlock: 8,
+      paddingInline: 4,
+    },
+    Message: {
+      borderRadiusLG: 8,
+    },
+  },
+};
+```
+
+Note: If the existing config already has a `components` key, merge into it. If it uses `designToken` or a different structure, adapt accordingly. Read the file first.
+
+- [ ] **Step 3: Commit**
+
+
+## Task UI-2: Login Page — Branding + Password Toggle + Loading State
+
+**File:** `src/app/(public)/auth/signin/page.tsx`
+
+- [ ] **Step 1: Read current login page**
+Read: `src/app/(public)/auth/signin/page.tsx`
+
+- [ ] **Step 2: Rewrite login page**
+
+Replace the entire file content with this polished version:
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { Button, Card, Divider, Flex, Form, FormItem, Input, message, Spin, Typography } from "antd";
+import { useRouter } from "next/navigation";
+import { LoginOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { menus } from "@/data/paths";
+import { useAuth } from "@/hooks/useAuth";
+
+const { Title, Text } = Typography;
+
+interface SignInFormValues {
+  username: string;
+  password: string;
+}
+
+const Page = () => {
+  const router = useRouter();
+  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const onFinish = async (values: SignInFormValues) => {
+    setLoading(true);
+    try {
+      await login(values.username, values.password);
+      router.push(menus[0].key);
+    } catch (error) {
+      const err = error as { message?: string };
+      messageApi.error(err?.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #f8f9ff 0%, #eef0ff 100%)",
+      }}
+    >
+      {contextHolder}
+      <Card
+        style={{
+          width: 440,
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(52, 55, 179, 0.12)",
+          border: "none",
+          overflow: "hidden",
+        }}
+        styles={{ body: { padding: 0 } }}
+      >
+        {/* Header */}
+        <Flex vertical align="center" gap={8} style={{ padding: "32px 32px 24px" }}>
+          <Flex
+            align="center"
+            justify="center"
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #3437B3 0%, #5a5fd4 100%)",
+              boxShadow: "0 4px 16px rgba(52, 55, 179, 0.3)",
+            }}
+          >
+            <SafetyCertificateOutlined style={{ fontSize: 28, color: "#fff" }} />
+          </Flex>
+          <Title level={3} style={{ margin: 0, color: "#1a1a2e" }}>
+            Wallpaper Admin
+          </Title>
+          <Text type="secondary">Sign in to manage your wallpaper content</Text>
+        </Flex>
+
+        <Divider style={{ margin: 0 }} />
+
+        {/* Form */}
+        <div style={{ padding: "24px 32px 32px" }}>
+          <Form
+            layout="vertical"
+            onFinish={onFinish}
+            size="large"
+            requiredMark="optional"
+          >
+            <FormItem
+              label="Username"
+              name="username"
+              rules={[{ required: true, message: "Please enter your username" }]}
+            >
+              <Input
+                prefix={<Text type="secondary">@</Text>}
+                placeholder="Enter your username"
+                autoComplete="username"
+              />
+            </FormItem>
+
+            <FormItem
+              label="Password"
+              name="password"
+              rules={[{ required: true, message: "Please enter your password" }]}
+            >
+              <Input.Password
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                iconRender={(visible) =>
+                  visible ? <Text type="secondary">Hide</Text> : <Text type="secondary">Show</Text>
+                }
+              />
+            </FormItem>
+
+            <FormItem style={{ marginBottom: 0, marginTop: 24 }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                icon={<LoginOutlined />}
+                style={{ width: "100%", height: 44 }}
+                size="large"
+              >
+                {loading ? "Signing in..." : "Sign In"}
+              </Button>
+            </FormItem>
+          </Form>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default Page;
+```
+
+Key improvements:
+- `Input.Password` with Show/Hide toggle
+- `messageApi.error()` for error feedback (inline with form, not just toast)
+- `loading` state on the submit button
+- Branded header with gradient icon
+- Clean layout with `Divider` separating branding from form
+- Removed dead `Spin` wrapper
+
+- [ ] **Step 3: Commit**
+
+
+## Task UI-3: Sidebar — Icons + Logo + Token-based Styling
+
+**File:** `src/layouts/Sidebar.tsx`
+
+- [ ] **Step 1: Read current Sidebar**
+Read: `src/layouts/Sidebar.tsx`
+
+- [ ] **Step 2: Rewrite Sidebar with icons and token styling**
+
+Replace the entire file content with:
+
+```tsx
+"use client";
+import { Menu, Button, ConfigProvider } from "antd";
+import Sider from "antd/es/layout/Sider";
+import { useMemo, useState } from "react";
+import { IMenuItem, menus } from "@/data/paths";
+import { usePathname } from "next/navigation";
+import Link, { TLinkHref } from "@/components/ui/Link";
+import Show from "@/components/ui/Show";
+import Title from "antd/es/typography/Title";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  LogoutOutlined,
+  PictureOutlined,
+  FolderOutlined,
+  AppstoreOutlined,
+} from "@ant-design/icons";
+
+const MENU_ICONS: Record<string, React.ReactNode> = {
+  "/admin/wallpaper": <PictureOutlined />,
+  "/admin/category": <FolderOutlined />,
+  "/admin/menu": <AppstoreOutlined />,
+};
+
+function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { logout } = useAuth();
+  const splitPathname = pathname.split("/");
+  const defaultOpenKeys = splitPathname ? "/" + splitPathname[1] : "";
+
+  const transformedMenus = useMemo(() => {
+    return menus.reduce((arr: IMenuItem[], menu) => {
+      const tempMenu = { ...menu };
+
+      if (menu.children) {
+        tempMenu.children = menu.children.map((child) => ({
+          ...child,
+          icon: MENU_ICONS[child.key] || undefined,
+          label: (
+            <Link href={child.key as TLinkHref}>{child.label}</Link>
+          ),
+        }));
+      } else {
+        tempMenu.icon = MENU_ICONS[menu.key] || undefined;
+        tempMenu.label = (
+          <Link href={tempMenu.key as TLinkHref}>{tempMenu.label}</Link>
+        );
+      }
+
+      return arr.concat(tempMenu);
+    }, []);
+  }, []);
+
+  const allPaths = useMemo(() => menus.map((menu) => menu.key), []);
+
+  const pathSelected = useMemo(() => {
+    return allPaths.filter((path) =>
+      path.split("/").every((el, index) => splitPathname[index] === el)
+    );
+  }, [allPaths, splitPathname]);
+
+  const [openKeys, setOpenKeys] = useState<string[]>([defaultOpenKeys]);
+
+  const onOpenChange = (keys: string[]) => {
+    const latestOpenKey = keys.find((key) => !openKeys.includes(key));
+    setOpenKeys(latestOpenKey ? [latestOpenKey] : []);
+  };
+
+  return (
+    <ConfigProvider
+      theme={{
+        token: {
+          borderRadius: 8,
+          colorPrimary: "#3437B3",
+        },
+        components: {
+          Menu: {
+            itemSelectedBg: "rgba(52, 55, 179, 0.15)",
+            itemSelectedColor: "#fff",
+            itemHoverBg: "rgba(52, 55, 179, 0.1)",
+            itemIconFontSize: 16,
+          },
+        },
+      }}
+    >
+      <div className="max-w-66">
+        <Sider
+          className="min-h-screen h-full sticky left-0 top-0 z-20 flex flex-col"
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
+          width={264}
+          style={{
+            background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)",
+          }}
+        >
+          {/* Logo / Title */}
+          <Flex
+            align="center"
+            justify={collapsed ? "center" : "flex-start"}
+            gap={12}
+            style={{
+              padding: collapsed ? "20px 0" : "20px 24px",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <Flex
+              align="center"
+              justify="center"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                background: "rgba(52, 55, 179, 0.6)",
+                flexShrink: 0,
+              }}
+            >
+              <PictureOutlined style={{ fontSize: 18, color: "#fff" }} />
+            </Flex>
+            {!collapsed && (
+              <Title
+                level={5}
+                style={{
+                  margin: 0,
+                  color: "#fff",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Wallpaper Admin
+              </Title>
+            )}
+          </Flex>
+
+          <Show when={pathSelected.length && transformedMenus.length}>
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={pathSelected}
+              openKeys={openKeys}
+              onOpenChange={onOpenChange}
+              items={transformedMenus}
+              className="w-full flex-1"
+              style={{ background: "transparent", border: "none" }}
+            />
+          </Show>
+
+          {/* Logout */}
+          <div
+            style={{
+              padding: "16px 12px",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <Button
+              type="text"
+              icon={<LogoutOutlined />}
+              onClick={logout}
+              style={{
+                width: "100%",
+                color: "rgba(255,255,255,0.65)",
+                justifyContent: collapsed ? "center" : "flex-start",
+                paddingInline: collapsed ? 0 : 16,
+              }}
+              className="logout-btn"
+            >
+              {!collapsed && "Logout"}
+            </Button>
+          </div>
+        </Sider>
+      </div>
+
+      <style jsx global>{`
+        .logout-btn:hover {
+          color: #ff4d4f !important;
+          background: rgba(255, 77, 79, 0.1) !important;
+        }
+      `}</style>
+    </ConfigProvider>
+  );
+}
+
+export default Sidebar;
+```
+
+Key improvements:
+- Logo/icon header with gradient icon box
+- Menu items have icons (PictureOutlined, FolderOutlined, AppstoreOutlined)
+- `defaultSelectedKeys` removed (use `selectedKeys` from computed `pathSelected`)
+- Logout uses red hover via CSS instead of Tailwind class
+- `collapsed` mode centers icons
+- Gradient dark background
+- ConfigProvider with Menu theme tokens
+
+- [ ] **Step 3: Commit**
+
+
+## Task UI-4: CommonTable — Row Hover + Ellipsis + Empty State
+
+**File:** `src/components/ui/CommonTable.tsx`
+
+- [ ] **Step 1: Read current CommonTable**
+Read: `src/components/ui/CommonTable.tsx`
+
+- [ ] **Step 2: Apply row hover and ellipsis improvements**
+
+Make these specific changes:
+
+**A) Add row hover cursor style** — Find the `<Table>` component and add a `className` or use Ant Design's `components.Table` override. Add this CSS class approach:
+
+After the `return (` statement, before the `<Table>`, add a `<style>` tag or use an inline `className`:
+
+```tsx
+// Add a style tag inside the component's return, before the Table:
+<style>{`
+  .common-table tr.ant-table-row:hover > td {
+    background: #f5f5f5 !important;
+    cursor: pointer;
+  }
+`}</style>
+
+// Or add to Table props:
+className="common-table"
+```
+
+**B) Improve `showTotal`** — Replace the `showTotal` function with a cleaner version:
+
+```tsx
+const showTotal = (total: number, range: [number, number]) => {
+  return (
+    <span style={{ color: "#8c8c8c", fontSize: 14 }}>
+      {range[0]}-{range[1]} of {total} items
+    </span>
+  );
+};
+```
+
+**C) Keep all existing props** — Do not remove any existing props (pagination, onChange, etc.). Just add the improvements above.
+
+Note: `ellipsis` is handled at the column level in each feature table (WallpaperTable, CategoryTable, etc.) — see Task UI-5.
+
+- [ ] **Step 3: Commit**
+
+
+## Task UI-5: Feature Tables — Ellipsis, Icons, Badge Column
+
+**Files:**
+- `src/features/wallpaper/components/WallpaperTable.tsx`
+- `src/features/category/components/CategoryTable.tsx`
+- `src/features/menu/components/MenuTable.tsx`
+
+- [ ] **Step 1: Read all three table files**
+Read: `src/features/wallpaper/components/WallpaperTable.tsx`
+Read: `src/features/category/components/CategoryTable.tsx`
+Read: `src/features/menu/components/MenuTable.tsx`
+
+For each table, make the following targeted changes:
+
+**A) Import antd icons** — Add to imports:
+```tsx
+import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+```
+
+**B) Fix action dropdown** — Replace the custom `Flex gap={8}` inside `MenuProps["items"]` label with proper `antd` `label` + `icon` structure. For example, replace:
+
+```tsx
+// FROM:
+{
+  key: "1",
+  label: (
+    <Link href={...}>
+      <Flex gap={8} style={{ width: 200, height: 40 }} align="center" justify="start">
+        Edit
+      </Flex>
+    </Link>
+  ),
+}
+```
+
+With:
+
+```tsx
+// TO:
+{
+  key: "1",
+  label: "Edit",
+  icon: <EditOutlined />,
+}
+```
+
+And wrap the whole `Dropdown menu={{ items: actions(record) }}` with a `Link` instead:
+
+```tsx
+// The Link should wrap the Dropdown trigger (the MoreOutlined button), not each item
+<Link href={`/admin/wallpaper/${record.id}/detail` as TLinkHref}>
+  <Dropdown menu={{ items: actions(record) }} trigger={["click"]} placement="bottomRight">
+    <MoreOutlined ... />
+  </Dropdown>
+</Link>
+```
+
+**C) Add ellipsis to text columns** — In each text column, add `ellipsis: { tooltip: true }`:
+
+WallpaperTable — add to `name` and `tags` columns:
+```tsx
+{
+  title: "Name",
+  dataIndex: "name",
+  ellipsis: { tooltip: true },  // ADD
+  // ...
+}
+```
+
+CategoryTable — add to `name` column:
+```tsx
+{
+  title: "Name",
+  dataIndex: "name",
+  ellipsis: { tooltip: true },  // ADD
+  // ...
+}
+```
+
+MenuTable — add to `wallpaperName` and `categoryName` columns.
+
+**D) Rename "Linked Menu" to "Menus"** in WallpaperTable:
+```tsx
+// FROM:
+title: "Linked Menu",
+// TO:
+title: "Menus",
+```
+
+**E) Fix "No." column title** in all tables:
+```tsx
+// FROM:
+title: "No.",
+// TO:
+title: "#",
+```
+
+- [ ] **Step 2: Verify action dropdown works correctly**
+
+The action items should be proper antd Menu items. If `actions()` is called as a function, make sure it returns the proper structure. If using a `<Link>` around the Dropdown, verify the row click still works via `CommonTable`'s `onClickRow`.
+
+Important: Keep the `onCell: { onClick: (e) => e.stopPropagation() }` on the actions column to prevent row navigation when clicking the dropdown.
+
+- [ ] **Step 3: Commit**
+
+
+## Task UI-6: Wallpaper Create Page — Section Cards + Better Loading
+
+**File:** `src/app/(protected)/admin/wallpaper/create/page.tsx`
+
+- [ ] **Step 1: Read current wallpaper create page**
+Read: `src/app/(protected)/admin/wallpaper/create/page.tsx`
+
+- [ ] **Step 2: Rewrite with section cards and better loading**
+
+Replace the entire file content with:
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { Alert, Button, Card, Divider, Flex, message, Spin } from "antd";
+import Title from "antd/es/typography/Title";
+import Section from "@/components/ui/Section";
+import { useSetHeaderContent } from "@/context/header/HeaderProvider";
+import WallpaperForm from "@/features/wallpaper/components/form/WallpaperForm";
+import { TFormRef } from "@/data/type";
+import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { showSuccessToast, showToast } from "@/lib/error";
+import { TForm } from "@/features/wallpaper/components/form/WallpaperForm";
+import { WALLPAPER, TSaveWallpaperPayload } from "@/features/wallpaper/data/type";
+import { IResponseError } from "@/lib/service/utility";
+import WallpaperServices from "@/features/wallpaper/services";
+import UploadServices from "@/services/upload.service";
+import { TFileType } from "@/hooks/useUpload";
+import ButtonCancel from "@/components/form/ButtonCancel";
+import ButtonSave from "@/components/form/ButtonSave";
+
+export default function PageCreateWallpaper() {
+  const ref = useRef<TFormRef>(null);
+  const router = useRouter();
+  const [errorCode, setErrorCode] = useState<Errors | undefined>();
+  const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
+  const { setPageTitle } = useSetHeaderContent();
+  const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    setPageTitle("Wallpaper");
+  }, [setPageTitle]);
+
+  const uploadFile = async (
+    file: TFileType,
+    type: string,
+    categoryId: number,
+    fileName: string
+  ): Promise<string> => {
+    const response = await UploadServices.uploadFile({
+      file,
+      categoryId: categoryId.toString(),
+      type,
+      name: fileName,
+    });
+    return response.path;
+  };
+
+  const onSuccess = () => {
+    showSuccessToast("save", WALLPAPER.LIST, "Wallpaper saved");
+    queryClient.invalidateQueries({ queryKey: [WALLPAPER.LIST] });
+    router.push("/admin/wallpaper");
+  };
+
+  const onError = (error: IResponseError<unknown>) => {
+    setErrorCode(error.errorCode);
+    messageApi.error((error as { message?: string }).message || "Failed to save wallpaper");
+  };
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (payload: TSaveWallpaperPayload) =>
+      WallpaperServices.addWallpaper(payload),
+    onSuccess,
+    onError,
+  });
+
+  const onSubmit = async (values: TForm) => {
+    setIsUploading(true);
+    try {
+      let resourceUrl: string | undefined;
+      let thumbUrl: string | undefined;
+
+      const resourceFile = values.resourceFiles?.[0];
+      if (resourceFile) {
+        resourceUrl = await uploadFile(resourceFile, "content", Number(values.categoryId), values.name);
+      }
+
+      const thumbFile = values.thumbFiles?.[0];
+      if (thumbFile) {
+        thumbUrl = await uploadFile(thumbFile, "thumb", Number(values.categoryId), values.name);
+      }
+
+      const payload = {
+        name: values.name,
+        categoryId: Number(values.categoryId),
+        tags: values.tags,
+        resolution: values.resolution,
+        size: values.size,
+        mime: values.mime,
+        resourceUrl: resourceUrl || "",
+        thumbUrl: thumbUrl || "",
+      };
+      mutate(payload);
+    } catch (error) {
+      console.error("Form submission error:", error);
+      messageApi.error("Failed to upload files. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <Section>
+      {contextHolder}
+
+      {/* Header */}
+      <Flex align="center" justify="space-between" style={{ marginBottom: 24 }}>
+        <Title level={4} style={{ margin: 0 }}>Create Wallpaper</Title>
+        <Flex gap={12}>
+          <ButtonCancel href="/admin/wallpaper" />
+          <ButtonSave onClick={() => ref.current?.submit()} />
+        </Flex>
+      </Flex>
+
+      {/* Upload loading indicator */}
+      {isUploading && (
+        <Alert
+          message="Uploading files..."
+          description="Please wait while your files are being uploaded."
+          type="info"
+          showIcon
+          icon={<Spin size="small" />}
+          style={{ marginBottom: 16, borderRadius: 8 }}
+        />
+      )}
+
+      {/* Basic Info Card */}
+      <Card
+        title="Basic Information"
+        size="small"
+        style={{ marginBottom: 16, borderRadius: 12 }}
+        styles={{ header: { fontWeight: 600 } }}
+      >
+        <WallpaperForm
+          ref={ref}
+          errorCode={errorCode}
+          onSubmit={onSubmit}
+          disabled={isPending}
+        />
+      </Card>
+
+      {/* Note */}
+      <Flex justify="end">
+        <Button type="link" onClick={() => ref.current?.submit()} loading={isPending || isUploading}>
+          {isPending || isUploading ? "Saving..." : "Save Wallpaper"}
+        </Button>
+      </Flex>
+    </Section>
+  );
+}
+```
+
+Note: The `WallpaperForm` renders its own internal layout (Col/Row). The `Card` wrapping it will look good. If `WallpaperForm` uses `layout="vertical"`, the card title will serve as the section header.
+
+Also add missing imports (`useRef`, `useEffect`, `Errors`, `Card`, `Divider`).
+
+If `WallpaperForm` does not accept a `disabled` prop, wrap the form content in a `Spin` only for the specific section that needs it (or pass `readOnly={isPending}` as a proxy for disabled).
+
+- [ ] **Step 3: Commit**
+
+
+## Task UI-7: UploadMedia — Dashed Upload + Drag Handle + Alert
+
+**File:** `src/components/form/UploadMedia.tsx`
+
+- [ ] **Step 1: Read current UploadMedia**
+Read: `src/components/form/UploadMedia.tsx`
+
+- [ ] **Step 2: Apply targeted improvements**
+
+**A) Add visible drag handle icon**
+
+Find `DraggableUploadListItem` in `itemRender`. Add a visible `HolderOutlined` icon to the drag handle. Import it:
+
+```tsx
+import { HolderOutlined } from "@ant-design/icons";
+```
+
+In `DraggableUploadListItem`, add the drag handle as a visible icon:
+
+```tsx
+// In the itemRender function in UploadMedia, wrap the originNode with a div
+// that shows the drag handle on hover:
+itemRender={(originNode, file, currEle) => (
+  <div style={{ position: "relative" }} className="draggable-item-wrapper">
+    <HolderOutlined
+      style={{
+        position: "absolute",
+        top: -8,
+        left: "50%",
+        transform: "translateX(-50%)",
+        color: "#8c8c8c",
+        fontSize: 14,
+        cursor: "grab",
+        opacity: 0.6,
+        zIndex: 10,
+      }}
+      className="drag-handle"
+    />
+    {originNode}
+    <style>{`
+      .draggable-item-wrapper:hover .drag-handle { opacity: 1; }
+    `}</style>
+  </div>
+)}
+```
+
+**B) Replace Text warning with Alert**
+
+Find the `mediaWarning && <Text type="warning">` line. Replace with:
+
+```tsx
+{mediaWarning && (
+  <Alert
+    message={mediaWarning}
+    type="warning"
+    showIcon
+    banner
+    style={{ marginTop: 8, borderRadius: 8 }}
+  />
+)}
+```
+
+Import `Alert` from antd.
+
+**C) Style upload button as dashed**
+
+Find the upload button inside `<Upload>`. Add `type="dashed"` or style the inner button:
+
+```tsx
+<Button
+  className="w-full h-full border-dashed"
+  disabled={isMaxCount || disabled}
+  style={{ borderStyle: "dashed" }}
+>
+```
+
+Add to imports: `type ButtonProps` is already imported.
+
+- [ ] **Step 3: Commit**
+
+
+## Task UI-8: Filter Bar — Labels + Clear Filters + Card Wrapper
+
+**File:** `src/features/wallpaper/components/WallpaperTableFilter.tsx`
+
+- [ ] **Step 1: Read current filter**
+Read: `src/features/wallpaper/components/WallpaperTableFilter.tsx`
+
+- [ ] **Step 2: Read FilterContainer**
+Read: `src/components/ui/FilterContainer.tsx`
+
+- [ ] **Step 3: Rewrite filter bar with improvements**
+
+Replace the entire `WallpaperTableFilter.tsx` content:
+
+```tsx
+"use client";
+
+import { Button, Card, Flex, Input, SelectProps } from "antd";
+import FilterContainer from "@/components/ui/FilterContainer";
+import SelectCategory from "@/features/category/components/SelectCategory";
+import useTableFilter from "@/hooks/useTableFilter";
+import { useSearchParams } from "next/navigation";
+import React from "react";
+import { SearchOutlined, ClearOutlined } from "@ant-design/icons";
+
+const WallpaperTableFilter = () => {
+  const searchParams = useSearchParams();
+  const searchKeyword = searchParams.get("keyword")?.split(",") ?? [];
+  const selectedCategoryId = searchParams.get("categoryId") ?? undefined;
+  const { onDebouncedFilter, onFilter, onClearFilters } = useTableFilter();
+
+  const hasActiveFilters = searchKeyword.length > 0 || !!selectedCategoryId;
+
+  const onChangeInput: (key: string) => Input["onChange"] =
+    (key) => (event) => {
+      onDebouncedFilter(key, event.target.value);
+    };
+
+  const onChangeSelect: (key: string) => SelectProps["onChange"] =
+    (key) => (value) => {
+      onFilter(key, value);
+    };
+
+  return (
+    <Card
+      size="small"
+      style={{ marginBottom: 16, borderRadius: 12 }}
+      styles={{ body: { padding: "16px 20px" } }}
+    >
+      <Flex vertical gap={12}>
+        <Flex align="center" justify="space-between">
+          <span style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>
+            Filters
+          </span>
+          {hasActiveFilters && (
+            <Button
+              type="link"
+              size="small"
+              icon={<ClearOutlined />}
+              onClick={onClearFilters}
+              danger
+              style={{ paddingRight: 0 }}
+            >
+              Clear filters
+            </Button>
+          )}
+        </Flex>
+
+        <FilterContainer>
+          <div>
+            <Input
+              prefix={<SearchOutlined style={{ color: "#8c8c8c" }} />}
+              defaultValue={searchKeyword.join(",")}
+              placeholder="Search by name or tags"
+              allowClear
+              onChange={onChangeInput("keyword")}
+              size="large"
+              style={{ borderRadius: 8 }}
+            />
+          </div>
+          <div>
+            <SelectCategory
+              placeholder="Filter by category"
+              onChange={onChangeSelect("categoryId")}
+              value={selectedCategoryId}
+              size="large"
+              style={{ width: "100%" }}
+            />
+          </div>
+        </FilterContainer>
+      </Flex>
+    </Card>
+  );
+};
+
+export default WallpaperTableFilter;
+```
+
+Also check if `useTableFilter` has an `onClearFilters` method. If it doesn't, add it:
+
+Read: `src/hooks/useTableFilter.tsx`. Find the hook and add an `onClearFilters` function that clears all filter query params.
+
+If `onClearFilters` doesn't exist, add it to the hook:
+
+```tsx
+const onClearFilters = () => {
+  const current = new URLSearchParams(Array.from(searchParams.entries()));
+  current.delete("keyword");
+  current.delete("categoryId");
+  current.set("page", "1");
+  router.replace(`${pathname}?${current.toString()}`, { scroll: false });
+};
+```
+
+And expose it from the return object.
+
+- [ ] **Step 4: Commit**
+
+
+## Task UI-9: Modal Footer — Ant Design Buttons + Loading State
+
+**File:** `src/features/wallpaper/components/WallpaperTable.tsx`
+
+- [ ] **Step 1: Read the modal section of WallpaperTable**
+Read: `src/features/wallpaper/components/WallpaperTable.tsx` — specifically the `<Modal>` section (around line 258)
+
+- [ ] **Step 2: Replace raw button HTML with Ant Design Button components**
+
+Find the Modal's `footer` area. Replace:
+
+```tsx
+// FROM:
+<div style={{ marginTop: 16, textAlign: 'right' }}>
+  <button
+    onClick={handleModalCancel}
+    style={{ marginRight: 8, padding: '8px 16px' }}
+  >
+    Cancel
+  </button>
+  <button
+    onClick={() => menuFormRef.current?.submit()}
+    disabled={isCreatingMenu}
+    style={{
+      padding: '8px 16px',
+      backgroundColor: '#1890ff',
+      color: 'white',
+      border: 'none',
+      borderRadius: 4
+    }}
+  >
+    {isCreatingMenu ? 'Creating...' : 'Create Menu'}
+  </button>
+</div>
+```
+
+With:
+
+```tsx
+// TO:
+footer={null}  // Remove the raw footer div entirely
+```
+
+And outside the `MenuForm`, replace the raw div with proper Ant Design layout:
+
+```tsx
+<Flex justify="end" gap={8} style={{ marginTop: 16 }}>
+  <Button onClick={handleModalCancel}>Cancel</Button>
+  <Button
+    type="primary"
+    loading={isCreatingMenu}
+    onClick={() => menuFormRef.current?.submit()}
+  >
+    {isCreatingMenu ? "Creating..." : "Create Menu"}
+  </Button>
+</Flex>
+```
+
+Move this `Flex` outside the `MenuForm` component (after the `MenuForm` closing tag).
+
+- [ ] **Step 3: Import Button from antd**
+
+Check if `Button` is already imported in WallpaperTable.tsx. If not, add it to the import.
+
+Also import `Flex` from antd (if not already imported) and `message` if needed for error feedback.
+
+- [ ] **Step 4: Commit**
