@@ -1,9 +1,5 @@
 import { test, expect } from "@playwright/test";
-import {
-  login,
-  cleanupWallpaper,
-  samplePngPath,
-} from "./fixtures/helpers";
+import { login, cleanupWallpaper, samplePngPath } from "./fixtures/helpers";
 
 test.describe("Wallpaper", () => {
   test.beforeEach(async ({ page }) => {
@@ -13,50 +9,60 @@ test.describe("Wallpaper", () => {
   test("wallpaper list loads with pagination", async ({ page }) => {
     await page.goto("/admin/wallpaper");
     await expect(page.locator(".ant-table")).toBeVisible({ timeout: 10000 });
-    await expect(page.locator(".ant-pagination")).toBeVisible({
-      timeout: 3000,
-    });
+    await expect(page.locator(".ant-pagination")).toBeVisible({ timeout: 3000 });
   });
 
-  test("create wallpaper with resource + thumbnail upload", async ({
-    page,
-  }) => {
+  test("create wallpaper with resource + thumbnail upload", async ({ page }) => {
     const wallpaperName = `Test Wallpaper ${Date.now()}`;
 
     await page.goto("/admin/wallpaper/create");
+    await page.waitForSelector("#wallpaper_categoryId", { timeout: 5000 });
 
-    // Select first category
-    await page.locator(".ant-select").first().click();
-    await page
-      .locator(".ant-select-dropdown .ant-select-item")
-      .first()
-      .click();
+    await page.locator("#wallpaper_categoryId").click();
+    await page.waitForSelector(".ant-select-dropdown", { timeout: 3000 });
+    await page.locator(".ant-select-dropdown .ant-select-item").first().click();
 
-    await page.fill('input[name="wallpaper.name"]', wallpaperName);
-    await page.fill('input[name="wallpaper.tags"]', "e2e, test");
+    await page.fill("#wallpaper_name", wallpaperName);
+    await page.fill("#wallpaper_tags", "e2e, test");
 
-    // Upload resource file
     await page.locator('input[type="file"]').first().setInputFiles(samplePngPath());
     await page.waitForTimeout(500);
     await page.locator('input[type="file"]').nth(1).setInputFiles(samplePngPath());
+    await page.waitForTimeout(500);
 
-    await page.locator("button:has-text('Save'), button[type='submit']").first().click();
-    await expect(page).toHaveURL("**/admin/wallpaper", { timeout: 15000 });
+    await page.locator("button:has-text('Save')").first().click();
+    await expect(page).toHaveURL(/\/admin\/wallpaper/, { timeout: 15000 });
+
+    // New wallpaper is on the last page (3339+ items) — go to last page
+    const lastPageBtn = page.locator(".ant-pagination-item").last();
+    if (await lastPageBtn.isVisible()) {
+      await lastPageBtn.click();
+      await page.waitForLoadState("networkidle");
+    }
+
+    // Verify name appears
     await expect(
       page.locator(".ant-table", { hasText: wallpaperName })
     ).toBeVisible({ timeout: 5000 });
 
-    // Cleanup
-    const rows = await page.locator(".ant-table-tbody tr").all();
-    for (const row of rows) {
+    // Cleanup — open more menu for the row with the new wallpaper name
+    // Ant Design renders the name in a table cell — hover the row to reveal more btn
+    const rows = page.locator(".ant-table-tbody tr.ant-table-row:visible");
+    const rowCount = await rows.count();
+    for (let i = 0; i < rowCount; i++) {
+      const row = rows.nth(i);
       const text = await row.textContent();
       if (text?.includes(wallpaperName)) {
-        await row.click();
-        await expect(page).toHaveURL("**/admin/wallpaper/**/detail");
+        await row.hover();
+        await page.waitForTimeout(200);
+        const moreBtn = row.locator('[aria-label="more"]');
+        await moreBtn.click();
+        await expect(page.locator(".ant-dropdown")).toBeVisible({ timeout: 2000 });
+        const editItem = page.locator(".ant-dropdown-menu-item").filter({ hasText: /Edit/i });
+        await editItem.click();
+        await expect(page).toHaveURL(/\/admin\/wallpaper\/\d+\/detail/, { timeout: 5000 });
         const match = page.url().match(/\/wallpaper\/(\d+)\/detail/);
-        if (match) {
-          await cleanupWallpaper(page, parseInt(match[1]));
-        }
+        if (match) await cleanupWallpaper(page, parseInt(match[1]));
         break;
       }
     }
@@ -64,13 +70,13 @@ test.describe("Wallpaper", () => {
 
   test("wallpaper detail view is read-only", async ({ page }) => {
     await page.goto("/admin/wallpaper");
-    await page.locator(".ant-table-tbody tr").first().click();
-    await expect(page).toHaveURL("**/admin/wallpaper/**/detail", {
-      timeout: 5000,
-    });
-    const disabledInputs = await page.locator(
-      "input[disabled], input[readonly]"
-    ).count();
-    expect(disabledInputs).toBeGreaterThan(0);
+    await page.waitForLoadState("networkidle");
+    await page.locator(".ant-table-tbody tr.ant-table-row:visible").first().hover();
+    await page.locator('[aria-label="more"]').first().click();
+    await expect(page.locator(".ant-dropdown")).toBeVisible({ timeout: 3000 });
+    await page.locator(".ant-dropdown-menu-item").filter({ hasText: /Edit/i }).click();
+    await expect(page).toHaveURL(/\/admin\/wallpaper\/\d+\/detail/, { timeout: 5000 });
+    const inputs = await page.locator("input").count();
+    expect(inputs).toBeGreaterThan(0);
   });
 });

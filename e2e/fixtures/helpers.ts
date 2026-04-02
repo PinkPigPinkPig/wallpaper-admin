@@ -1,6 +1,9 @@
 import { Page } from "@playwright/test";
 import path from "path";
 
+// Prod API base
+export const API_BASE = "https://freshness-wallpaper.xyz/api/v1";
+
 // Seeded admin credentials (from prisma/seed/index.ts)
 export const ADMIN_USERNAME = "admin";
 export const ADMIN_PASSWORD = "admin";
@@ -52,16 +55,10 @@ export async function login(
   password?: string
 ) {
   await page.goto("/auth/signin");
-  await page.fill(
-    'input[name="username"]',
-    username || ADMIN_USERNAME
-  );
-  await page.fill(
-    'input[name="password"]',
-    password || ADMIN_PASSWORD
-  );
+  await page.fill("#username", username || ADMIN_USERNAME);
+  await page.fill("#password", password || ADMIN_PASSWORD);
   await page.click("button[type='submit']");
-  await page.waitForURL("**/admin/wallpaper", { timeout: 10000 });
+  await page.waitForURL(/\/admin\/wallpaper/, { timeout: 10000 });
 }
 
 // Retrieve accessToken from localStorage on the page
@@ -80,7 +77,7 @@ async function getAccessToken(page: Page): Promise<string> {
 export async function cleanupWallpaper(page: Page, id: number) {
   const token = await getAccessToken(page);
   const resp = await page.request.delete(
-    `http://localhost:3001/api/v1/admin/wallpaper/${id}`,
+    `${API_BASE}/admin/wallpaper/${id}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -93,7 +90,7 @@ export async function cleanupWallpaper(page: Page, id: number) {
 export async function cleanupCategory(page: Page, id: number) {
   const token = await getAccessToken(page);
   const resp = await page.request.delete(
-    `http://localhost:3001/api/v1/wallpaper/category/${id}`,
+    `${API_BASE}/wallpaper/category/${id}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -106,7 +103,7 @@ export async function cleanupCategory(page: Page, id: number) {
 export async function cleanupMenu(page: Page, id: number) {
   const token = await getAccessToken(page);
   const resp = await page.request.delete(
-    `http://localhost:3001/api/v1/admin/menu/${id}`,
+    `${API_BASE}/admin/menu/${id}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }

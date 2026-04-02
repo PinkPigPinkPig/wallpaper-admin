@@ -6,11 +6,10 @@ import { useSetHeaderContent } from "@/context/header/HeaderProvider";
 import CategoryForm from "@/features/category/components/form/CategoryForm";
 import { TFormRef } from "@/data/type";
 import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { showSuccessToast, showToast } from "@/lib/error";
 import { TCategoryForm } from "@/features/category/components/form/CategoryForm";
 import { CATEGORY, TSaveCategoryPayload } from "@/features/category/data/type";
-import { IResponseError } from "@/lib/service/utility";
 import CategoryServices from "@/features/category/services";
 import UploadServices from "@/services/upload.service";
 import { TFileType } from "@/hooks/useUpload";
@@ -40,27 +39,11 @@ export default function PageCreateCategory() {
     return response.path;
   };
 
-  const onSuccess = () => {
-    showSuccessToast("save", CATEGORY.LIST, "Category saved");
-    queryClient.invalidateQueries({ queryKey: [CATEGORY.LIST] });
-    router.push("/admin/category");
-  };
-
-  const onError = (error: IResponseError<unknown>) => {
-    console.error("Error creating category:", error);
-  };
-
-  useMutation({
-    mutationFn: (payload: TSaveCategoryPayload) => CategoryServices.addCategory(payload),
-    onSuccess,
-    onError,
-  });
-
   const onSubmit = async (values: TCategoryForm) => {
     setIsUploading(true);
     try {
       // Step 1: Create category with empty thumbUrl so BE creates the DB record and folder path
-      const createPayload = { name: values.name, thumbUrl: "" };
+      const createPayload: TSaveCategoryPayload = { name: values.name, thumbUrl: "" };
       const created = await CategoryServices.addCategory(createPayload);
       const categoryId = (created as { id: number }).id;
 
@@ -79,7 +62,10 @@ export default function PageCreateCategory() {
         });
       }
 
-      onSuccess();
+      // Invalidate cache and redirect directly — do NOT rely on useMutation onSuccess
+      queryClient.invalidateQueries({ queryKey: [CATEGORY.LIST] });
+      showSuccessToast("save", CATEGORY.LIST, "Category saved");
+      router.push("/admin/category");
     } catch (error) {
       console.error("Form submission error:", error);
       showToast("server", "Failed to save category. Please try again.");
