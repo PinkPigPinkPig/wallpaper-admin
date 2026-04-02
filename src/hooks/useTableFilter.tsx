@@ -56,7 +56,15 @@ const useTableFilter = () => {
     router.replace(`${pathname}?${current.toString()}` as TLinkHref, { scroll: false });
   };
 
-  return { onFilter, onDebouncedFilter, onClearFilter };
+  const onClearFilters = () => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    current.delete('keyword');
+    current.delete('categoryId');
+    current.set('page', '1');
+    router.replace(`${pathname}?${current.toString()}` as TLinkHref, { scroll: false });
+  };
+
+  return { onFilter, onDebouncedFilter, onClearFilter, onClearFilters };
 };
 
 export default useTableFilter;
