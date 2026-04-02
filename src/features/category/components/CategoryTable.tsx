@@ -1,10 +1,10 @@
 "use client";
 
 import CommonTable from "@/components/ui/CommonTable";
-import React from "react";
-import { TCategory } from "../data/type";
+import React, { useState } from "react";
+import { TCategory, CATEGORY } from "../data/type";
 import Show from "@/components/ui/Show";
-import { Dropdown, Flex, MenuProps } from "antd";
+import { Dropdown, Flex, MenuProps, Modal, Button } from "antd";
 import { ColumnsType } from "antd/es/table";
 import Link, {
   TLinkHref,
@@ -17,10 +17,17 @@ import useURLQueries from "@/hooks/useURLQueries";
 import useGetCategoryList from "../hooks/useGetCategoryList";
 import Image from "next/image";
 import { MoreOutlined } from "@ant-design/icons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { showSuccessToast, showToast } from "@/lib/error";
+import { IResponseError } from "@/lib/service/utility";
+import CategoryServices from "../services";
 
 const CategoryTable = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const [deleteTarget, setDeleteTarget] = useState<TCategory | null>(null);
 
   const { currentPage, currentPageSize } =
     useURLQueries();
@@ -35,11 +42,21 @@ const CategoryTable = () => {
     );
   };
 
-  const handleDeleteButtonClick = (
-    record: TCategory
-  ) => {
-    console.log(record);
+  const handleDeleteSuccess = () => {
+    showSuccessToast("delete", CATEGORY.LIST, "Category deleted");
+    queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey[0] === CATEGORY.LIST,
+    });
+    setDeleteTarget(null);
   };
+
+  const { mutate: deleteCategory, isPending: isDeleting } = useMutation({
+    mutationFn: (id: number) => CategoryServices.deleteCategory(id),
+    onSuccess: handleDeleteSuccess,
+    onError: (error: IResponseError<unknown>) => {
+      showToast("server", (error as { message?: string }).message || "Failed to delete category");
+    },
+  });
 
   const actions = (record: TCategory) => {
     const actions = [
@@ -70,9 +87,7 @@ const CategoryTable = () => {
             style={{ minWidth: 140, height: 40 }}
             align="center"
             justify="start"
-            onClick={() =>
-              handleDeleteButtonClick(record)
-            }
+            onClick={() => setDeleteTarget(record)}
           >
             Delete
           </Flex>
@@ -190,13 +205,39 @@ const CategoryTable = () => {
   ];
 
   return (
-    <CommonTable<TCategory>
-      loading={isLoading}
-      columns={columns}
-      dataSource={data?.data}
-      total={data?.totalItems}
-      onClickRow={onRowClick}
-    />
+    <>
+      <CommonTable<TCategory>
+        loading={isLoading}
+        columns={columns}
+        dataSource={data?.data}
+        total={data?.totalItems}
+        onClickRow={onRowClick}
+      />
+
+      <Modal
+        title="Delete Category"
+        open={!!deleteTarget}
+        onCancel={() => setDeleteTarget(null)}
+        footer={
+          <Flex gap={8} justify="end">
+            <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button
+              danger
+              type="primary"
+              loading={isDeleting}
+              onClick={() => deleteTarget && deleteCategory(deleteTarget.id)}
+            >
+              Delete
+            </Button>
+          </Flex>
+        }
+      >
+        <p>
+          Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?
+          This will also remove its thumbnail.
+        </p>
+      </Modal>
+    </>
   );
 };
 

@@ -25,6 +25,10 @@ export class MenuServices {
     static getMenuDetail(id: number) {
         return API.get<TMenu>(`${MenuServices.basePath}/${id}`);
     }
+
+    static deleteMenu(id: number) {
+        return API.delete(`${MenuServices.basePath}/${id}`);
+    }
 }
 
 export default MenuServices;

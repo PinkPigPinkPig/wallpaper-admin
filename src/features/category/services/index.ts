@@ -24,6 +24,10 @@ class CategoryServices {
   static getCategoryDetail(id: number) {
     return API.get<TCategory>(`${CategoryServices.basePath}/${id}`);
   }
+
+  static deleteCategory(id: number) {
+    return API.delete(`${CategoryServices.basePath}/${id}`);
+  }
 }
 
 export default CategoryServices;

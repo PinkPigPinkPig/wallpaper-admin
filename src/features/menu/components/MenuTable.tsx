@@ -1,41 +1,58 @@
 import CommonTable from '@/components/ui/CommonTable';
-import React from 'react'
-import { TMenu } from '../data/type';
+import React, { useState } from 'react';
+import { TMenu, MENU } from '../data/type';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useURLQueries from '@/hooks/useURLQueries';
 import useGetMenuList from '../hooks/useGetMenuList';
 import Link, { TLinkHref } from '@/components/ui/Link';
-import { Dropdown, Flex, MenuProps } from 'antd';
+import { Dropdown, Flex, MenuProps, Modal, Button } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import Image from 'next/image';
 import Show from '@/components/ui/Show';
 import { MoreOutlined } from "@ant-design/icons";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { showSuccessToast, showToast } from '@/lib/error';
+import { IResponseError } from '@/lib/service/utility';
+import MenuServices from '../services';
 
 const MenuTable = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
-  
+    const queryClient = useQueryClient();
+
+    const [deleteTarget, setDeleteTarget] = useState<TMenu | null>(null);
+
     const { currentPage, currentPageSize } =
       useURLQueries();
-  
+
     const { data, isLoading } = useGetMenuList(
       `${searchParams.toString()}` || undefined
     );
-  
+
     const onRowClick = (record: TMenu) => {
       router.push(
         `/admin/menu/${record.id}/detail` as TLinkHref
       );
     };
-  
-    const handleDeleteButtonClick = (
-      record: TMenu
-    ) => {
-      console.log(record);
+
+    const handleDeleteSuccess = () => {
+      showSuccessToast('delete', MENU.LIST, 'Menu deleted');
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === MENU.LIST,
+      });
+      setDeleteTarget(null);
     };
-  
+
+    const { mutate: deleteMenu, isPending: isDeleting } = useMutation({
+      mutationFn: (id: number) => MenuServices.deleteMenu(id),
+      onSuccess: handleDeleteSuccess,
+      onError: (error: IResponseError<unknown>) => {
+        showToast('server', (error as { message?: string }).message || 'Failed to delete menu');
+      },
+    });
+
     const actions = (record: TMenu) => {
-      const actions = [
+      const items = [
         {
           key: "1",
           label: (
@@ -63,19 +80,17 @@ const MenuTable = () => {
               style={{ minWidth: 140, height: 40 }}
               align="center"
               justify="start"
-              onClick={() =>
-                handleDeleteButtonClick(record)
-              }
+              onClick={() => setDeleteTarget(record)}
             >
               Delete
             </Flex>
           ),
         },
       ] as MenuProps["items"];
-  
-      return actions;
+
+      return items;
     };
-  
+
     const columns: ColumnsType<TMenu> = [
       {
         title: "#",
@@ -99,7 +114,6 @@ const MenuTable = () => {
             return <div>No thumbnail</div>;
           }
           try {
-            // Validate URL
             new URL(thumbUrl);
             return (
               <Image
@@ -196,16 +210,41 @@ const MenuTable = () => {
         key: "actions",
       },
     ];
-  
+
     return (
-      <CommonTable<TMenu>
-        loading={isLoading}
-        columns={columns}
-        dataSource={data?.data}
-        total={data?.totalItems}
-        onClickRow={onRowClick}
-      />
+      <>
+        <CommonTable<TMenu>
+          loading={isLoading}
+          columns={columns}
+          dataSource={data?.data}
+          total={data?.totalItems}
+          onClickRow={onRowClick}
+        />
+
+        <Modal
+          title="Delete Menu"
+          open={!!deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          footer={
+            <Flex gap={8} justify="end">
+              <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
+              <Button
+                danger
+                type="primary"
+                loading={isDeleting}
+                onClick={() => deleteTarget && deleteMenu(deleteTarget.id)}
+              >
+                Delete
+              </Button>
+            </Flex>
+          }
+        >
+          <p>
+            Are you sure you want to delete this menu?
+          </p>
+        </Modal>
+      </>
     );
-  }
+}
 
 export default MenuTable
