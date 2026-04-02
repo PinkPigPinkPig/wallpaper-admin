@@ -69,20 +69,26 @@ const CommonTable = <TData,>({
     router.replace(`${pathname}?${current.toString()}` as TLinkHref, { scroll: false });
   };
 
-  const showTotal = (total: number) => {
+  const showTotal = (total: number, range: [number, number]) => {
     return (
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-        }}>{`Total ${total} ${total === 1 ? 'item' : 'items'}`}</div>
+      <span style={{ color: '#8c8c8c', fontSize: 14 }}>
+        {range[0]}-{range[1]} of {total} items
+      </span>
     );
   };
 
   return (
-    <Table
-      tableLayout="auto"
-      key="ste-list-table"
+    <>
+      <style>{`
+        .common-table .ant-table-row:hover > td {
+          background: #f5f5f5 !important;
+          cursor: pointer;
+        }
+      `}</style>
+      <Table
+        tableLayout="auto"
+        key="ste-list-table"
+        className="common-table"
       locale={{
         emptyText: (
           <Show when={emptyText} fallback={<TableEmpty text={"No data"} img={EmptyData} />}>
@@ -117,7 +123,8 @@ const CommonTable = <TData,>({
         };
       }}
       {...rest}
-    />
+      />
+    </>
   );
 };
 
