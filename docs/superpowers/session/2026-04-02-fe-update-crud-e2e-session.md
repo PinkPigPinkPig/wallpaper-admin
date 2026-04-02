@@ -150,11 +150,11 @@ export type TSaveWallpaperPayload = {
 
 Full plan at: `docs/superpowers/plans/2026-04-02-fe-update-crud-e2e-plan.md`
 
-**17 tasks (0-16):**
+**26 tasks (0-16, UI-1 to UI-9):**
 - Task 0: Verify prerequisites
 - Task 1-2: BE fixes (category update/delete orphan thumb)
 - Task 3: FE wallpaper update service
-- Task 4: FE WallpaperForm submit logic (keep existing URLs when no new file)
+- Task 4: FE WallpaperForm submit logic
 - Task 5: FE UploadMedia pre-populate existing files (CRITICAL)
 - Task 6: FE wallpaper edit client component
 - Task 7: FE category update service
@@ -162,6 +162,15 @@ Full plan at: `docs/superpowers/plans/2026-04-02-fe-update-crud-e2e-plan.md`
 - Task 9: FE menu update service
 - Task 10: FE menu detail edit mode + table link fix
 - Task 11-16: E2E tests (fixture, helpers, auth, category, wallpaper, menu)
+- UI-1: Theme tokens — global Ant Design polish
+- UI-2: Login page — branding, password toggle, loading state
+- UI-3: Sidebar — icons, logo, token-based styling
+- UI-4: CommonTable — row hover, cursor, empty state
+- UI-5: Feature tables — ellipsis, icons, badge column
+- UI-6: Wallpaper create page — section cards, better loading
+- UI-7: UploadMedia — dashed upload, drag handle, alert
+- UI-8: Filter bar — labels, clear filters, card wrapper
+- UI-9: Modal footer — Ant Design buttons + loading state
 
 ---
 
@@ -244,3 +253,6 @@ Then update `FormMedia` to forward `initialFiles` and `UploadMedia` to accept it
 |--------|---------|
 | `c7e761b` | docs: add FE update CRUD + E2E test suite design spec |
 | `dc7e13a` | docs: add FE update CRUD + E2E test suite implementation plan |
+| `d7c1f56` | docs: add session context file for long-running implementation |
+| `898be12` | docs: update plan and session with UploadMedia pre-populate fix |
+| `07e1c27` | docs: add UI improvement plan (9 tasks) |
