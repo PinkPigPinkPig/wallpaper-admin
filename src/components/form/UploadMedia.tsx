@@ -1,8 +1,8 @@
 "use client";
 
 import useUpload, { ErrorUpload, TFileList, TFileType } from '@/hooks/useUpload';
-import { UploadOutlined } from '@ant-design/icons';
-import { Button, Flex, Upload, UploadProps } from 'antd';
+import { HolderOutlined, UploadOutlined } from '@ant-design/icons';
+import { Alert, Button, Flex, Upload, UploadProps } from 'antd';
 import Text from 'antd/es/typography/Text';
 import { DndContext, PointerSensor, useSensor, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
@@ -189,12 +189,34 @@ const UploadMedia = ({
             disabled={disabled}
             onPreview={handlePreview}
             openFileDialogOnClick={!isMaxCount && !hasFiles}
-            itemRender={(originNode, file) => <DraggableUploadListItem originNode={originNode} file={file} />}
+            itemRender={(originNode, file, currEle) => (
+              <div style={{ position: "relative" }} className="draggable-item-wrapper">
+                <HolderOutlined
+                  style={{
+                    position: "absolute",
+                    top: -10,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    color: "#8c8c8c",
+                    fontSize: 14,
+                    cursor: "grab",
+                    opacity: 0,
+                    transition: "opacity 0.2s",
+                    zIndex: 10,
+                  }}
+                  className="drag-handle-icon"
+                />
+                {originNode}
+                <style>{`
+                  .draggable-item-wrapper:hover .drag-handle-icon { opacity: 1; }
+                `}</style>
+              </div>
+            )}
             onChange={handleChange}
             onRemove={handleRemove}
             style={{ width: '250px', height: '250px' }}>
             {!hasFiles && (
-              <Button className="w-full h-full border-none" disabled={isMaxCount || disabled}>
+              <Button className="w-full h-full" type="dashed" disabled={isMaxCount || disabled}>
                 <Flex align="center" gap={4}>
                   <UploadOutlined style={{ fontSize: 24, color: '#00000073' }} />
                   <Text>Upload</Text>
@@ -205,7 +227,15 @@ const UploadMedia = ({
         </SortableContext>
       </DndContext>
 
-      {mediaWarning && <Text type="warning">{mediaWarning}</Text>}
+      {mediaWarning && (
+        <Alert
+          message={mediaWarning}
+          type="warning"
+          showIcon
+          banner={false}
+          style={{ marginTop: 8, borderRadius: 8 }}
+        />
+      )}
 
       {ImagePreview}
     </>
