@@ -48,7 +48,7 @@ const CategoryTable = () => {
         label: (
           <Link
             href={
-              `/admin/wallpaper/${record.id}/detail` as TLinkHref
+              `/admin/category/${record.id}/detail` as TLinkHref
             }
           >
             <Flex
