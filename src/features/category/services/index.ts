@@ -17,6 +17,10 @@ class CategoryServices {
     return API.post<TCategory>(`${CategoryServices.basePath}`, payload);
   }
 
+  static updateCategory(id: number, payload: TSaveCategoryPayload) {
+    return API.put<TCategory>(`${CategoryServices.basePath}/${id}`, payload);
+  }
+
   static getCategoryDetail(id: number) {
     return API.get<TCategory>(`${CategoryServices.basePath}/${id}`);
   }
