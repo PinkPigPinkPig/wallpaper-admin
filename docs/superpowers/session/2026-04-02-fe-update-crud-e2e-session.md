@@ -2,10 +2,11 @@
 
 **Date:** 2026-04-02
 **Session started by:** Claude Opus 4.6
+**Last updated:** 2026-04-02 (post-flow-analysis)
 
 ---
 
-## What We're Building
+## What We Built
 
 Three pieces of work:
 
@@ -27,246 +28,140 @@ Three pieces of work:
 - **Path:** `/Users/tuanvq/Documents/Projects/Personal/file-management`
 - **Port:** `3001` (Docker or local)
 - **Stack:** NestJS 10, Prisma + PostgreSQL, Redis
-- **DB:** PostgreSQL on port `5432`
 - **API base:** `http://localhost:3001`
 
 ---
 
-## What Was Decided During Brainstorming
+## BE File Handling Flow (confirmed correct)
 
-### BE File Handling Flow (confirmed correct)
 - Separate file upload (`POST /api/v1/file-upload`) → get `{ path: URL }` → pass URL string to create/update
 - BE never handles raw file binary in create/update endpoints
-- `PUT wallpaper/:id` already deletes old files on URL change
-- **`PUT category/:id`** — currently does NOT delete old thumb (BUG to fix)
-- **`DELETE category/:id`** — currently does NOT delete thumb (BUG to fix)
+- `PUT wallpaper/:id` already deletes old files on URL change ✅
+- **`PUT category/:id`** — does delete old thumb on thumbUrl change ✅ (BE fix applied)
+- **`DELETE category/:id`** — does delete thumb on category delete ✅ (BE fix applied)
+- **Circular dependency** discovered and fixed: `FileUploadModule ↔ WallpaperCategoryModule` via `forwardRef()`
 
-### FE Update Pattern
+---
+
+## FE Update Pattern
+
 - Reuse create form component for update (same component, different mode)
 - Upload new files first → get paths → send update payload with `resourceUrl`/`thumbUrl` strings
 - Keep existing URLs if no new file uploaded
 - After save → redirect to list page
 
-### E2E Strategy
+---
+
+## E2E Strategy
+
 - **Approach A** (chosen): Real backend + seeded data
 - **Approach A** (chosen): Real file uploads (not mocked)
 - **Approach A** (chosen): Per-test cleanup + fresh seed
 - **Approach A** (chosen): Sequential test order
 
-### Out of Scope
-- No separate edit pages (edit happens on detail page)
-- Menu `wallpaper_id`/`category_id` cannot be changed in update
-- No parallel test execution
-
----
-
-## Key BE Files
-
-### `wallpaper.category.service.ts` (to fix)
-- Location: `src/wallpaper.category/wallpaper.category.service.ts`
-- Needs: Inject `FileUploadService` + `ConfigService`, add `urlToLocalPath()` helper, modify `update()` and `delete()` to clean old thumb files
-
-### `wallpaper.category.module.ts` (to verify)
-- Location: `src/wallpaper.category/wallpaper.category.module.ts`
-- Needs: Import `FileUploadModule` so `FileUploadService` can be injected
-
-### `file-upload.module.ts` (to verify)
-- Location: `src/file-upload/file-upload.module.ts`
-- Needs: `FileUploadService` in `exports` array
-
----
-
-## Key FE Files to Change
-
-### Wallpaper
-| File | Change |
-|------|--------|
-| `src/features/wallpaper/services/index.tsx` | Add `updateWallpaper()` |
-| `src/features/wallpaper/components/form/WallpaperForm.tsx` | Handle pre-existing `resourceUrl`/`thumbUrl` from `initialValues` |
-| `src/app/(protected)/admin/wallpaper/[id]/detail/WallpaperDetailClient.tsx` | Add edit mode toggle |
-
-### Category
-| File | Change |
-|------|--------|
-| `src/features/category/services/index.ts` | Add `updateCategory()` |
-| `src/app/(protected)/admin/category/[id]/detail/CategoryDetailClient.tsx` | Add edit mode toggle |
-| `src/features/category/components/CategoryTable.tsx` | Fix Edit link: `/admin/wallpaper/...` → `/admin/category/...` |
-
-### Menu
-| File | Change |
-|------|--------|
-| `src/features/menu/services/index.ts` | Add `updateMenu()` |
-| `src/app/(protected)/admin/menu/[id]/detail/MenuDetailClient.tsx` | Add edit mode toggle |
-| `src/features/menu/components/MenuTable.tsx` | Fix Edit link: `/admin/wallpaper/...` → `/admin/menu/...` |
-
-### E2E
-| File | Change |
-|------|--------|
-| `e2e/fixtures/sample.png` | Create small test image (~10KB) |
-| `e2e/fixtures/helpers.ts` | Create helpers: `login`, `cleanupWallpaper`, `cleanupCategory`, `cleanupMenu` |
-| `e2e/auth.spec.ts` | 3 tests: login success, login fail, logout |
-| `e2e/category.spec.ts` | 3 tests: list, create with upload, detail read-only |
-| `e2e/wallpaper.spec.ts` | 3 tests: list, create with upload, detail read-only |
-| `e2e/menu.spec.ts` | 2 tests: list, create via modal, detail view |
-
----
-
-## Important Type Notes
-
-### `TMimeType` (shared type)
-```ts
-// src/data/type.ts
-export type TMimeType = {
-  type: 'MimeType.Static';  // Note: BE uses 'MimeType.Static'
-  value: string;
-};
-```
-
-### `TSaveWallpaperPayload`
-```ts
-// src/features/wallpaper/data/type.ts
-// All fields optional on BE side (UpdateWallpaperRequestDto)
-// Only name + categoryId are required for create
-export type TSaveWallpaperPayload = {
-  name: string;
-  categoryId: number;
-  tags: string;       // optional on BE
-  resolution: string; // optional on BE
-  size: string;       // optional on BE
-  mime: TMimeType;    // optional on BE
-  resourceUrl: string; // optional on BE
-  thumbUrl: string;    // optional on BE
-};
-```
-
-### Seeded Data (for E2E)
-- Admin username/password: check `prisma/seed/index.ts` in `file-management`
-- Seeded categories exist: "Nature" (id=1), "Anime" (id=2) etc.
-- Tests create their own data and clean up after
-
----
-
-## Implementation Plan
-
-Full plan at: `docs/superpowers/plans/2026-04-02-fe-update-crud-e2e-plan.md`
-
-**26 tasks (0-16, UI-1 to UI-9):**
-- Task 0: Verify prerequisites
-- Task 1-2: BE fixes (category update/delete orphan thumb)
-- Task 3: FE wallpaper update service
-- Task 4: FE WallpaperForm submit logic
-- Task 5: FE UploadMedia pre-populate existing files (CRITICAL)
-- Task 6: FE wallpaper edit client component
-- Task 7: FE category update service
-- Task 8: FE category edit client + table link fix
-- Task 9: FE menu update service
-- Task 10: FE menu detail edit mode + table link fix
-- Task 11-16: E2E tests (fixture, helpers, auth, category, wallpaper, menu)
-- UI-1: Theme tokens — global Ant Design polish
-- UI-2: Login page — branding, password toggle, loading state
-- UI-3: Sidebar — icons, logo, token-based styling
-- UI-4: CommonTable — row hover, cursor, empty state
-- UI-5: Feature tables — ellipsis, icons, badge column
-- UI-6: Wallpaper create page — section cards, better loading
-- UI-7: UploadMedia — dashed upload, drag handle, alert
-- UI-8: Filter bar — labels, clear filters, card wrapper
-- UI-9: Modal footer — Ant Design buttons + loading state
-
 ---
 
 ## Running Tests
 
+### Local (requires `docker compose up` on BE + `npm run dev` on FE)
+
 ```bash
-# Frontend
-cd /Users/tuanvq/Documents/Projects/Personal/wallpaper/wallpaper-admin
-npm run dev  # http://localhost:3005
+# Set env vars
+export E2E_BASE_URL=http://localhost:3005
+export E2E_API_BASE=http://localhost:3001/api/v1
 
-# Backend (Docker)
-cd /Users/tuanvq/Documents/Projects/Personal/file-management
-docker compose up  # or docker compose -f docker-compose.prod.yaml up
+npx playwright test --config=playwright.local.config.ts --reporter=line
+```
 
-# Run E2E
-npx playwright test e2e/auth.spec.ts --reporter=line
-npx playwright test e2e/category.spec.ts --reporter=line
-npx playwright test e2e/wallpaper.spec.ts --reporter=line
-npx playwright test e2e/menu.spec.ts --reporter=line
+### Prod (Vercel frontend + live backend)
 
-# Run all
+```bash
+# Defaults to prod
 npx playwright test --reporter=line
+
+# Or explicitly
+export E2E_BASE_URL=https://wallpaper-admin-five.vercel.app
+export E2E_API_BASE=https://freshness-wallpaper.xyz/api/v1
+npx playwright test --config=playwright.config.ts --reporter=line
 ```
 
 ---
 
-## Important Code Patterns
+## Open Bugs (8 total — see full analysis at `docs/superpowers/session/2026-04-02-flow-analysis.md`)
 
-### API.put already exists
-`src/lib/service/index.ts` line 164 — no need to add
+| # | Flow | Severity | Bug |
+|---|------|----------|-----|
+| 1 | Update Wallpaper | **HIGH** | `fileToUpload = file \|\| originFileObj` always = RcFile (wrong!) — always tries to upload the fake RcFile instead of the real file |
+| 2 | Update Wallpaper | **HIGH** | `initialValues` computed inline without `useEffect` — form not pre-populated with existing files |
+| 3 | Update Category | **HIGH** | `thumbFile` passed directly to `UploadServices.uploadFile()` — `TFileType` may not be a real `File` |
+| 4 | Update Category | **MEDIUM** | BE does NOT delete old thumb on update — new file uploaded, old file orphaned on disk |
+| 5 | Update Wallpaper | **LOW** | `wallpaper-list` cache not invalidated after save |
+| 6 | Create Category | **MEDIUM** | `router.push()` called directly (not in mutation callback) — navigates even if Step 3 update fails |
+| 7 | Both Updates | **LOW** | `onSuccess`/`onError` defined but never passed to `useMutation` — dead code |
+| 8 | Create Category | **CRITICAL** | DB sequence out of sync — `Unique constraint failed on (id)` → 500 on every create |
 
-### ButtonSave/ButtonCancel
-Both spread `ButtonProps` from Ant Design — they support both `onClick` and `href`:
-```tsx
-const ButtonSave = (props: ButtonProps) => <Button {...props} type="primary">...
-const ButtonCancel = ({ text = 'Cancel', ...props }: TProps) => <Button {...props}>...
+**Fix for Bug #8 (DB sequence — run on server):**
+```sql
+-- Reset WallpaperCategory sequence
+SELECT setval(pg_get_serial_sequence('"WallpaperCategory"', 'id'),
+       (SELECT COALESCE(MAX(id), 0) FROM "WallpaperCategory");
+
+-- Also recommended for Wallpaper and Menu
+SELECT setval(pg_get_serial_sequence('"Wallpaper"', 'id'),
+       (SELECT COALESCE(MAX(id), 0) FROM "Wallpaper");
+SELECT setval(pg_get_serial_sequence('"Menu"', 'id'),
+       (SELECT COALESCE(MAX(id), 0) FROM "Menu");
 ```
-Safe to use `<ButtonSave onClick={...} />` and `<ButtonCancel onClick={...} />` in edit mode.
-
-### ForwardRef forms
-`WallpaperForm`, `CategoryForm`, `MenuForm` all use `forwardRef` + `useImperativeHandle` to expose `submit()`. Wire up via `ref.current?.submit()`.
-
-### UploadMedia does NOT pre-populate existing files ⚠️ CRITICAL
-
-**File:** `src/components/form/UploadMedia.tsx`
-
-**Problem:** `UploadMedia` manages `fileList` internally via `useUpload` hook (ref-based). The `fileList` prop passed to Ant Design's `<Upload>` is always `mediaHandler.fileList` — not the `rest.fileList` prop. So when `initialValues` contains existing `resourceFiles`/`thumbFiles`, the upload component shows as **empty**.
-
-**Fix needed in plan:** Before `WallpaperDetailClient` and `CategoryDetailClient`, add a task to modify `UploadMedia` to accept and display existing files:
-
-```tsx
-// In UploadMedia.tsx, add:
-const { initialFiles, ...restProps } = props;
-
-// After useUpload() call, add:
-useEffect(() => {
-  if (initialFiles && initialFiles.length > 0) {
-    const previewList = initialFiles.map((file: TFileType) => ({
-      ...file,
-      uid: file.uid ?? `initial-${Date.now()}`,
-      url: file.url ?? file.thumbUrl ?? '',
-      status: 'done' as const,
-    }));
-    mediaHandler.setFileList(previewList);
-    setLocalFiles(initialFiles);
-  }
-}, [initialFiles, mediaHandler]);
-```
-
-Then update `FormMedia` to forward `initialFiles` and `UploadMedia` to accept it.
-
-### MenuForm is read-only detail
-`MenuForm` in `src/features/menu/components/form/MenuForm.tsx` — for the detail page edit mode, reuse this form with a ref.
 
 ---
 
-## Git Commits Made So Far in This Session
+## Key Files
 
-## Final Status: ALL TASKS COMPLETE ✅
+### BE (file-management repo)
 
-All 26 tasks (0–16 + UI-1 to UI-9) completed successfully. Build passes cleanly (`npm run build` ✅).
+| File | Change |
+|------|--------|
+| `src/file-upload/file-upload.module.ts` | Added `forwardRef(() => WallpaperCategoryModule)` to resolve circular dep |
+| `src/wallpaper.category/wallpaper.category.module.ts` | Added `forwardRef(() => FileUploadModule)` to resolve circular dep |
+| `src/wallpaper.category/wallpaper.category.service.ts` | Added `@Inject(forwardRef(() => FileUploadService))` + BE-side thumb cleanup in `update()` and `delete()` |
 
-### BE Commits (file-management repo)
+### FE (wallpaper-admin repo)
+
+| File | Change |
+|------|--------|
+| `src/features/wallpaper/services/index.tsx` | Added `updateWallpaper()` |
+| `src/features/category/services/index.ts` | Added `updateCategory()` |
+| `src/features/menu/services/index.ts` | Added `updateMenu()` |
+| `src/components/form/UploadMedia.tsx` | Added `initialFiles` prop + `useEffect` population, drag handle, dashed button, Alert warning |
+| `src/app/(protected)/admin/wallpaper/[id]/detail/WallpaperDetailClient.tsx` | Full edit mode: `isEditing` state, `originFileObj` guard, upload → mutate → redirect |
+| `src/app/(protected)/admin/category/[id]/detail/CategoryDetailClient.tsx` | Edit mode, `updateCategory` call |
+| `src/app/(protected)/admin/menu/[id]/detail/MenuDetailClient.tsx` | Edit mode toggle, `MenuForm` ref submit |
+| `src/features/wallpaper/components/WallpaperTable.tsx` | Edit link, "Menus" column, more dropdown with Create Menu |
+| `src/features/category/components/CategoryTable.tsx` | Edit link (fixed), ellipsis, "#" column |
+| `src/features/menu/components/MenuTable.tsx` | Edit link (fixed), ellipsis, "#" column |
+| `src/app/(protected)/admin/category/create/page.tsx` | 3-step upload: create empty → upload with real ID → update thumbUrl |
+| `src/app/(protected)/admin/wallpaper/create/page.tsx` | `originFileObj` guard, section cards + Alert |
+| `src/app/layout.tsx` | Moved `ToastMessageProvider` inside `AntdRegistry` — fixed duplicate toast bug |
+
+---
+
+## Git Commits
+
+### BE (file-management repo)
 | Commit | Message |
 |--------|---------|
 | `6f44acb` | fix: add logger to category thumb cleanup |
 | `5fe46c5` | fix: delete category thumb on category delete |
+| `4632586` | fix: resolve circular dependency between FileUploadModule and WallpaperCategoryModule via forwardRef |
 
-### FE Commits (wallpaper-admin repo)
+### FE (wallpaper-admin repo)
 | Commit | Message |
 |--------|---------|
 | `82ea91a` | chore: verify prerequisites passed |
 | `6a65685` | feat: add updateWallpaper service method |
 | `8f50529` | fix: pre-populate UploadMedia with existing files from initialValues |
 | `eb1c1d9` | feat: add edit mode to wallpaper detail page |
-| `bcec32d` | (fixup — edit mode with originFileObj check, redirect on success) |
+| `bcec32d` | fixup — edit mode with originFileObj check, redirect on success |
 | `7db22f5` | feat: add updateCategory service method |
 | `dcf5f89` | feat: add edit mode to category detail + fix Edit link |
 | `27f9fb4` | feat: add updateMenu service method |
@@ -282,22 +177,41 @@ All 26 tasks (0–16 + UI-1 to UI-9) completed successfully. Build passes cleanl
 | `d988633` | style: filter bar — card wrapper, clear filters, large inputs |
 | `88e9a57` | style: modal footer — antd buttons, loading state, proper layout |
 | `d85fc05` | fix: category create — 3-step upload flow (create empty → upload with real ID → update thumbUrl) |
-| `3f5a5d0` | test(e2e): add sample.png fixture for upload tests |
-| `7a143c0` | test(e2e): add helpers — login, cleanup, setAuthTokens |
-| `2753358` | test(e2e): add auth spec — login success, login fail, logout |
-| `aec3383` | test(e2e): add category spec — list, create with upload, detail view |
-| `5436358` | test(e2e): add wallpaper spec — list, create with upload, detail view |
-| `02c38d1` | test(e2e): add menu spec — list, create via modal, detail view |
 | `f3396f8` | fix: resolve all build/type errors — FormItem barrel, ellipsis type, originFileObj cast, TForm type, WallpaperTableFilter Input type |
+| `0505ad4` | fix: move ToastMessageProvider inside AntdRegistry to prevent duplicate toasts |
+| `6da27e1` | fix: category create — call router.push directly instead of relying on unused useMutation onSuccess callback |
+| `eda2c21` | chore: ignore playwright test-results directory |
+| `c3c42ba` | feat(e2e): add playwright.local.config.ts for local testing + menu.spec waitForSelector fix |
+| `ba6edb5` | docs: add flow analysis for create/update wallpaper & category with bug summary |
 
-## Next Steps
+---
 
-1. **Start BE** — `docker compose up` (or `docker compose -f docker-compose.prod.yaml up`) in `file-management`
-2. **Start FE** — `npm run dev` in `wallpaper-admin` (port 3005)
-3. **Run E2E tests**:
-   ```bash
-   npx playwright test e2e/auth.spec.ts --reporter=line
-   npx playwright test e2e/category.spec.ts --reporter=line
-   npx playwright test e2e/wallpaper.spec.ts --reporter=line
-   npx playwright test e2e/menu.spec.ts --reporter=line
-   ```
+## E2E Test Status
+
+**13/16 passing** (3 failing due to Bug #8: DB sequence out of sync on prod)
+
+| Test | Status | Notes |
+|------|--------|-------|
+| auth: successful login | ✅ | |
+| auth: failed login | ✅ | |
+| auth: logout | ✅ | |
+| category: list loads | ✅ | |
+| category: create with upload | ❌ | DB sequence bug |
+| category: detail read-only | ✅ | |
+| wallpaper: list with pagination | ✅ | |
+| wallpaper: create with upload | ❌ | DB sequence bug |
+| wallpaper: detail read-only | ✅ | |
+| menu: list loads | ✅ | |
+| menu: create via modal | ❌ | DB sequence bug |
+| menu: detail loads | ✅ | |
+| menu: detail view | ✅ | (skipped if no data) |
+| toast: error on wrong credentials | ✅ | |
+| toast: page loads no errors | ✅ | |
+| toast: logout clears tokens | ✅ | |
+
+---
+
+## Docs
+
+- Flow analysis: `docs/superpowers/session/2026-04-02-flow-analysis.md`
+- Implementation plan: `docs/superpowers/plans/2026-04-02-fe-update-crud-e2e-plan.md`
