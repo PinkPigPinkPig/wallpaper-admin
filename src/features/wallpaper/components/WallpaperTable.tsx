@@ -7,7 +7,7 @@ import {
 } from "next/navigation";
 import React, { useRef, useState } from "react";
 import useGetWallpaperList from "../hooks/useGetWallpaperList";
-import { Dropdown, Flex, MenuProps, Modal } from "antd";
+import { Button, Dropdown, Flex, MenuProps, Modal } from "antd";
 import { TWallpaper } from "../data/type";
 import { TMimeType, TFormRef } from "@/data/type";
 import Link, {
@@ -268,27 +268,16 @@ const WallpaperTable = () => {
           ref={menuFormRef}
           onSubmit={handleMenuSubmit}
         />
-        <div style={{ marginTop: 16, textAlign: 'right' }}>
-          <button
-            onClick={handleModalCancel}
-            style={{ marginRight: 8, padding: '8px 16px' }}
-          >
-            Cancel
-          </button>
-          <button
+        <Flex justify="end" gap={8} style={{ marginTop: 16 }}>
+          <Button onClick={handleModalCancel}>Cancel</Button>
+          <Button
+            type="primary"
+            loading={isCreatingMenu}
             onClick={() => menuFormRef.current?.submit()}
-            disabled={isCreatingMenu}
-            style={{ 
-              padding: '8px 16px', 
-              backgroundColor: '#1890ff', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: 4 
-            }}
           >
-            {isCreatingMenu ? 'Creating...' : 'Create Menu'}
-          </button>
-        </div>
+            {isCreatingMenu ? "Creating..." : "Create Menu"}
+          </Button>
+        </Flex>
       </Modal>
     </>
   );
