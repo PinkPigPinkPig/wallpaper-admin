@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Divider, Flex, Form, FormItem, Input, message, Typography } from "antd";
+import { Button, Card, Divider, Flex, Form, Input, message, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { LoginOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 import { menus } from "@/data/paths";
@@ -76,7 +76,7 @@ const Page = () => {
 
         <div style={{ padding: "24px 32px 32px" }}>
           <Form layout="vertical" onFinish={onFinish} size="large" requiredMark="optional">
-            <FormItem
+            <Form.Item
               label="Username"
               name="username"
               rules={[{ required: true, message: "Please enter your username" }]}
@@ -86,9 +86,9 @@ const Page = () => {
                 placeholder="Enter your username"
                 autoComplete="username"
               />
-            </FormItem>
+            </Form.Item>
 
-            <FormItem
+            <Form.Item
               label="Password"
               name="password"
               rules={[{ required: true, message: "Please enter your password" }]}
@@ -100,9 +100,9 @@ const Page = () => {
                   visible ? <Text type="secondary">Hide</Text> : <Text type="secondary">Show</Text>
                 }
               />
-            </FormItem>
+            </Form.Item>
 
-            <FormItem style={{ marginBottom: 0, marginTop: 24 }}>
+            <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
               <Button
                 type="primary"
                 htmlType="submit"
@@ -112,7 +112,7 @@ const Page = () => {
               >
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
-            </FormItem>
+            </Form.Item>
           </Form>
         </div>
       </Card>

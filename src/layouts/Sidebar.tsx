@@ -26,14 +26,14 @@ function Sidebar() {
   const [openKeys, setOpenKeys] = useState<string[]>([]);
   const pathname = usePathname();
   const { logout } = useAuth();
-  const splitPathname = pathname.split("/");
-  const defaultOpenKeys = "/" + splitPathname[1];
+  const defaultOpenKeys = "/" + pathname.split("/")[1];
 
   const pathSelected = useMemo(() => {
+    const sp = pathname.split("/");
     return menus
       .map((m) => m.key)
       .filter((path) =>
-        path.split("/").every((el, i) => splitPathname[i] === el)
+        path.split("/").every((el, i) => sp[i] === el)
       );
   }, [pathname]);
 

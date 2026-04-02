@@ -16,8 +16,8 @@ const WallpaperTableFilter = () => {
 
   const hasActiveFilters = searchKeyword.length > 0 || !!selectedCategoryId;
 
-  const onChangeInput = (key: string): Input["onChange"] =>
-    (e) => {
+  const onChangeInput = (key: string) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       onDebouncedFilter(key, e.target.value);
     };
 

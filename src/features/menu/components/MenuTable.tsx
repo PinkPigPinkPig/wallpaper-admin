@@ -126,7 +126,7 @@ const MenuTable = () => {
         render: (wallpaperName) => wallpaperName,
         key: "wallpaperName",
         width: 171,
-        ellipsis: { tooltip: true },
+        ellipsis: true,
       },
       {
         title: "Category",
@@ -134,7 +134,7 @@ const MenuTable = () => {
         render: (categoryName) => categoryName,
         key: "categoryName",
         width: 171,
-        ellipsis: { tooltip: true },
+        ellipsis: true,
       },
       {
         title: "Filter",

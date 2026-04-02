@@ -1,8 +1,8 @@
 "use client";
 
 import useUpload, { ErrorUpload, TFileList, TFileType } from '@/hooks/useUpload';
-import { HolderOutlined, UploadOutlined } from '@ant-design/icons';
-import { Alert, Button, Flex, Upload, UploadProps } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+import { Button, Flex, Upload, UploadProps } from 'antd';
 import Text from 'antd/es/typography/Text';
 import { DndContext, PointerSensor, useSensor, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
@@ -65,16 +65,17 @@ const UploadMedia = ({
   // Populate with existing files on mount (for update mode with pre-filled values)
   useEffect(() => {
     if (initialFiles && initialFiles.length > 0) {
-      const previewList: TFileList[] = initialFiles.map((file: TFileType, idx: number) => ({
+      const previewList: TFileList[] = initialFiles.map((file: TFileType & { uid?: string; url?: string; thumbUrl?: string }, idx: number) => ({
         ...file,
-        uid: (file as TFileList).uid || `initial-${idx}`,
-        url: file.url || (file as TFileList).thumbUrl || '',
+        uid: file.uid || `initial-${idx}`,
+        url: file.url || file.thumbUrl || '',
         status: 'done' as const,
       }));
       mediaHandler.setFileList(previewList);
       setLocalFiles(initialFiles);
       if (onFilesChange) onFilesChange(initialFiles);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialFiles]);
 
   useEffect(() => {
@@ -83,6 +84,7 @@ const UploadMedia = ({
     );
 
     if (arrDiff?.length) mediaHandler.setFileList(rest.fileList || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rest.fileList]);
 
   const isMaxCount = mediaHandler.fileList.length >= maxCount;
@@ -189,34 +191,12 @@ const UploadMedia = ({
             disabled={disabled}
             onPreview={handlePreview}
             openFileDialogOnClick={!isMaxCount && !hasFiles}
-            itemRender={(originNode, file, currEle) => (
-              <div style={{ position: "relative" }} className="draggable-item-wrapper">
-                <HolderOutlined
-                  style={{
-                    position: "absolute",
-                    top: -10,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    color: "#8c8c8c",
-                    fontSize: 14,
-                    cursor: "grab",
-                    opacity: 0,
-                    transition: "opacity 0.2s",
-                    zIndex: 10,
-                  }}
-                  className="drag-handle-icon"
-                />
-                {originNode}
-                <style>{`
-                  .draggable-item-wrapper:hover .drag-handle-icon { opacity: 1; }
-                `}</style>
-              </div>
-            )}
+            itemRender={(originNode, file) => <DraggableUploadListItem originNode={originNode} file={file} />}
             onChange={handleChange}
             onRemove={handleRemove}
             style={{ width: '250px', height: '250px' }}>
             {!hasFiles && (
-              <Button className="w-full h-full" type="dashed" disabled={isMaxCount || disabled}>
+              <Button className="w-full h-full border-none" disabled={isMaxCount || disabled}>
                 <Flex align="center" gap={4}>
                   <UploadOutlined style={{ fontSize: 24, color: '#00000073' }} />
                   <Text>Upload</Text>
@@ -227,15 +207,7 @@ const UploadMedia = ({
         </SortableContext>
       </DndContext>
 
-      {mediaWarning && (
-        <Alert
-          message={mediaWarning}
-          type="warning"
-          showIcon
-          banner={false}
-          style={{ marginTop: 8, borderRadius: 8 }}
-        />
-      )}
+      {mediaWarning && <Text type="warning">{mediaWarning}</Text>}
 
       {ImagePreview}
     </>

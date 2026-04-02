@@ -191,7 +191,7 @@ const WallpaperTable = () => {
       render: (name) => name,
       key: "name",
       width: 171,
-      ellipsis: { tooltip: true },
+      ellipsis: true,
     },
     {
       title: "Category",
