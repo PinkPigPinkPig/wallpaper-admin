@@ -32,11 +32,11 @@ export default function PageCreateCategory() {
     setPageTitle("Category");
   }, [setPageTitle]);
 
-  const uploadFile = async (file: TFileType, fileName: string): Promise<string> => {
+  const uploadFile = async (file: TFileType, fileName: string, categoryId: number): Promise<string> => {
     try {
       const response = await UploadServices.uploadFile({
         file: file,
-        categoryId: "0", // Use 0 for category creation since category doesn't exist yet
+        categoryId: categoryId.toString(),
         type: "thumb", // Use "thumb" type for category thumbnail
         name: fileName,
       });
@@ -82,20 +82,32 @@ export default function PageCreateCategory() {
     setIsUploading(true);
 
     try {
-      let thumbUrl: string | undefined;
+      // Step 1: Create category with empty thumbUrl so BE creates the DB record and folder path
+      // (BE resolves category name → folder: /uploads/{name}/thumb/)
+      const createPayload = {
+        name: values.name,
+        thumbUrl: "",
+      };
+      const created = await CategoryServices.addCategory(createPayload);
+      const categoryId = (created as { id: number }).id;
 
-      // Upload thumbnail file if exists
+      // Step 2: Upload thumbnail with real categoryId + name
+      // BE calls findById(categoryId) → gets name → file lands in /uploads/{name}/thumb/
+      let thumbUrl = "";
       const thumbFile = values.thumbFiles?.[0];
       if (thumbFile) {
-        thumbUrl = await uploadFile(thumbFile, values.name);
+        thumbUrl = await uploadFile(thumbFile, values.name || 'category', categoryId);
       }
 
-      // Transform TCategoryForm to match the expected payload structure
-      const payload = {
-        name: values.name,
-        thumbUrl: thumbUrl || "",
-      };
-      mutate(payload);
+      // Step 3: Update with thumbnail URL
+      if (thumbUrl) {
+        await CategoryServices.updateCategory(categoryId, {
+          name: values.name,
+          thumbUrl,
+        });
+      }
+
+      onSuccess();
     } catch (error) {
       console.error('Form submission error:', error);
       showToast('server', 'Failed to upload files. Please try again.');
