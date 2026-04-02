@@ -249,10 +249,53 @@ Then update `FormMedia` to forward `initialFiles` and `UploadMedia` to accept it
 
 ## Git Commits Made So Far in This Session
 
+## Final Status: ALL TASKS COMPLETE ✅
+
+All 26 tasks (0–16 + UI-1 to UI-9) completed successfully.
+
+### BE Commits (file-management repo)
 | Commit | Message |
 |--------|---------|
-| `c7e761b` | docs: add FE update CRUD + E2E test suite design spec |
-| `dc7e13a` | docs: add FE update CRUD + E2E test suite implementation plan |
-| `d7c1f56` | docs: add session context file for long-running implementation |
-| `898be12` | docs: update plan and session with UploadMedia pre-populate fix |
-| `07e1c27` | docs: add UI improvement plan (9 tasks) |
+| `6f44acb` | fix: add logger to category thumb cleanup |
+| `5fe46c5` | fix: delete category thumb on category delete |
+
+### FE Commits (wallpaper-admin repo)
+| Commit | Message |
+|--------|---------|
+| `82ea91a` | chore: verify prerequisites passed |
+| `6a65685` | feat: add updateWallpaper service method |
+| `8f50529` | fix: pre-populate UploadMedia with existing files from initialValues |
+| `eb1c1d9` | feat: add edit mode to wallpaper detail page |
+| `bcec32d` | (fixup — edit mode with originFileObj check, redirect on success) |
+| `7db22f5` | feat: add updateCategory service method |
+| `dcf5f89` | feat: add edit mode to category detail + fix Edit link |
+| `27f9fb4` | feat: add updateMenu service method |
+| `dc10597` | feat: add edit mode to menu detail + fix Edit link |
+| `a52fc94` | style: add global Ant Design component theme tokens |
+| `c9000b5` | style: add global Ant Design component theme tokens (token fix) |
+| `d268545` | style: polish login page — branding, password toggle, loading button |
+| `94df1cb` | style: polish sidebar — icons, logo, gradient background, red logout hover |
+| `603e0db` | style: add row hover cursor to CommonTable, improve showTotal text |
+| `e476ffd` | style: feature tables — ellipsis tooltips, fix wrong Edit links, rename columns |
+| `640dc61` | style: section cards + upload alert on wallpaper create page |
+| `2c0ac9f` | style: visible drag handle, dashed upload button, alert warning on UploadMedia |
+| `d988633` | style: filter bar — card wrapper, clear filters, large inputs |
+| `88e9a57` | style: modal footer — antd buttons, loading state, proper layout |
+| `3f5a5d0` | test(e2e): add sample.png fixture for upload tests |
+| `7a143c0` | test(e2e): add helpers — login, cleanup, setAuthTokens |
+| `2753358` | test(e2e): add auth spec — login success, login fail, logout |
+| `aec3383` | test(e2e): add category spec — list, create with upload, detail view |
+| `5436358` | test(e2e): add wallpaper spec — list, create with upload, detail view |
+| `02c38d1` | test(e2e): add menu spec — list, create via modal, detail view |
+
+## Next Steps
+
+1. **Start BE** — `docker compose up` (or `docker compose -f docker-compose.prod.yaml up`) in `file-management`
+2. **Start FE** — `npm run dev` in `wallpaper-admin` (port 3005)
+3. **Run E2E tests**:
+   ```bash
+   npx playwright test e2e/auth.spec.ts --reporter=line
+   npx playwright test e2e/category.spec.ts --reporter=line
+   npx playwright test e2e/wallpaper.spec.ts --reporter=line
+   npx playwright test e2e/menu.spec.ts --reporter=line
+   ```
