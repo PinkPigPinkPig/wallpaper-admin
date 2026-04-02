@@ -570,7 +570,7 @@ Note: `ButtonSave` and `ButtonCancel` accept an `onClick` prop for programmatic 
 
 ---
 
-## Task 6: FE - Category Update Service Method
+## Task 7: FE - Category Update Service Method
 
 **Frontend file:** `/Users/tuanvq/Documents/Projects/Personal/wallpaper/wallpaper-admin/src/features/category/services/index.ts`
 
@@ -589,7 +589,7 @@ static updateCategory(id: number, payload: TSaveCategoryPayload) {
 
 ---
 
-## Task 7: FE - Category Edit Client Component
+## Task 8: FE - Category Edit Client Component
 
 **Frontend file:** `/Users/tuanvq/Documents/Projects/Personal/wallpaper/wallpaper-admin/src/app/(protected)/admin/category/[id]/detail/CategoryDetailClient.tsx`
 
@@ -731,7 +731,7 @@ href={`/admin/category/${record.id}/detail`}
 
 ---
 
-## Task 8: FE - Menu Update Service Method
+## Task 9: FE - Menu Update Service Method
 
 **Frontend file:** `/Users/tuanvq/Documents/Projects/Personal/wallpaper/wallpaper-admin/src/features/menu/services/index.ts`
 
@@ -750,7 +750,7 @@ static updateMenu(id: number, payload: TSaveMenuPayload) {
 
 ---
 
-## Task 9: FE - Menu Detail: Add Edit Mode
+## Task 10: FE - Menu Detail: Add Edit Mode
 
 **Frontend file:** `/Users/tuanvq/Documents/Projects/Personal/wallpaper/wallpaper-admin/src/app/(protected)/admin/menu/[id]/detail/MenuDetailClient.tsx`
 
@@ -947,7 +947,7 @@ href={`/admin/menu/${record.id}/detail`}
 
 ---
 
-## Task 10: E2E - Setup: sample.png Fixture
+## Task 11: E2E - Setup: sample.png Fixture
 
 **Files:**
 - Create: `e2e/fixtures/sample.png`
@@ -974,7 +974,7 @@ Expected: File exists, < 100KB
 
 ---
 
-## Task 11: E2E - Helpers: fixtures/helpers.ts
+## Task 12: E2E - Helpers: fixtures/helpers.ts
 
 **Files:**
 - Create: `e2e/fixtures/helpers.ts`
@@ -1089,7 +1089,7 @@ Note: `ADMIN_PASSWORD` must match the seeded admin password. Check your seed fil
 
 ---
 
-## Task 12: E2E - auth.spec.ts
+## Task 13: E2E - auth.spec.ts
 
 **Files:**
 - Create: `e2e/auth.spec.ts`
@@ -1157,7 +1157,7 @@ If login fails, check `ADMIN_PASSWORD` in helpers.ts matches seeded password.
 
 ---
 
-## Task 13: E2E - category.spec.ts
+## Task 14: E2E - category.spec.ts
 
 **Files:**
 - Create: `e2e/category.spec.ts`
@@ -1246,7 +1246,7 @@ Expected: Tests pass
 
 ---
 
-## Task 14: E2E - wallpaper.spec.ts
+## Task 15: E2E - wallpaper.spec.ts
 
 **Files:**
 - Create: `e2e/wallpaper.spec.ts`
@@ -1346,7 +1346,7 @@ Expected: Tests pass
 
 ---
 
-## Task 15: E2E - menu.spec.ts
+## Task 16: E2E - menu.spec.ts
 
 **Files:**
 - Create: `e2e/menu.spec.ts`
