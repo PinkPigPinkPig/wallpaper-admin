@@ -41,7 +41,7 @@ const MenuTable = () => {
           label: (
             <Link
               href={
-                `/admin/wallpaper/${record.id}/detail` as TLinkHref
+                `/admin/menu/${record.id}/detail` as TLinkHref
               }
             >
               <Flex
