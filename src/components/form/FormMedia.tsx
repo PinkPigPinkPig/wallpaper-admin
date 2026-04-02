@@ -23,6 +23,7 @@ interface IProps<TForm> extends FormItemProps {
   accept?: string;
   disabled?: boolean;
   onFilesChange?: (files: TFileType[]) => void;
+  initialFiles?: TFileType[];
 }
 
 const FormMedia = <TForm,>({
@@ -36,6 +37,7 @@ const FormMedia = <TForm,>({
   multiple,
   disabled,
   onFilesChange,
+  initialFiles,
   ...rest
 }: IProps<TForm>) => {
   const { validateFileNew } = useValidation();
@@ -66,6 +68,7 @@ const FormMedia = <TForm,>({
         accept={accept}
         maxCount={maxCount}
         onFilesChange={onFilesChange}
+        initialFiles={initialFiles}
         disabled={
           disabled !== undefined
             ? disabled

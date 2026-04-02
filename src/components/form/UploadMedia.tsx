@@ -17,6 +17,7 @@ type TProps = Omit<UploadProps, 'onChange'> & {
   fileType?: string;
   onChange?: (fileList: TFileList[]) => void;
   onFilesChange?: (files: TFileType[]) => void; // New prop to pass actual files for later upload
+  initialFiles?: TFileType[];
 };
 
 const UploadMedia = ({
@@ -29,6 +30,7 @@ const UploadMedia = ({
   fileType,
   onChange,
   onFilesChange,
+  initialFiles,
   ...rest
 }: TProps) => {
   const [mediaWarning, setDocumentsWarning] = useState('');
@@ -59,6 +61,21 @@ const UploadMedia = ({
     maxCount,
     canReplace: false,
   });
+
+  // Populate with existing files on mount (for update mode with pre-filled values)
+  useEffect(() => {
+    if (initialFiles && initialFiles.length > 0) {
+      const previewList: TFileList[] = initialFiles.map((file: TFileType, idx: number) => ({
+        ...file,
+        uid: (file as TFileList).uid || `initial-${idx}`,
+        url: file.url || (file as TFileList).thumbUrl || '',
+        status: 'done' as const,
+      }));
+      mediaHandler.setFileList(previewList);
+      setLocalFiles(initialFiles);
+      if (onFilesChange) onFilesChange(initialFiles);
+    }
+  }, [initialFiles]);
 
   useEffect(() => {
     const arrDiff = differenceWith(rest.fileList, mediaHandler.fileList, (oldArr, newArr) =>
