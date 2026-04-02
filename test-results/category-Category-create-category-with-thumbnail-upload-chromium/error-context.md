@@ -14,14 +14,14 @@
 ```
 Error: expect(locator).toBeVisible() failed
 
-Locator: locator('.ant-table').filter({ hasText: 'Test Category 1775116437329' })
+Locator: locator('.ant-table').filter({ hasText: 'Test Category 1775117649566' })
 Expected: visible
 Timeout: 5000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 5000ms
-  - waiting for locator('.ant-table').filter({ hasText: 'Test Category 1775116437329' })
+  - waiting for locator('.ant-table').filter({ hasText: 'Test Category 1775117649566' })
 
 ```
 
@@ -95,7 +95,7 @@ Call log:
                 - generic [ref=e86]:
                   - textbox "Category Name *" [ref=e87]:
                     - /placeholder: Enter category name
-                    - text: Test Category 1775116437329
+                    - text: Test Category 1775117649566
                   - button "close-circle" [ref=e89] [cursor=pointer]:
                     - img "close-circle" [ref=e90]:
                       - img [ref=e91]
@@ -108,11 +108,11 @@ Call log:
                   - button "sample.png eye delete" [ref=e108]:
                     - generic [ref=e109]:
                       - link "sample.png" [ref=e110] [cursor=pointer]:
-                        - /url: blob:https://wallpaper-admin-five.vercel.app/3bc569cb-d643-4084-9f1d-3b8bcf26c61b
+                        - /url: blob:https://wallpaper-admin-five.vercel.app/a165383b-a218-4868-b0f8-627e3f26ca4e
                         - img "sample.png" [ref=e111]
                       - generic [ref=e112]:
                         - link "eye" [ref=e113] [cursor=pointer]:
-                          - /url: blob:https://wallpaper-admin-five.vercel.app/3bc569cb-d643-4084-9f1d-3b8bcf26c61b
+                          - /url: blob:https://wallpaper-admin-five.vercel.app/a165383b-a218-4868-b0f8-627e3f26ca4e
                           - img "eye" [ref=e114]:
                             - img [ref=e115]
                         - button "delete" [ref=e117] [cursor=pointer]:
@@ -120,10 +120,6 @@ Call log:
                             - img [ref=e120]
                   - status [ref=e122]
   - alert [ref=e123]
-  - generic [ref=e125]:
-    - img "close-circle" [ref=e126]:
-      - img [ref=e127]
-    - generic [ref=e129]: Failed to save category. Please try again.
 ```
 
 # Test source
@@ -156,50 +152,62 @@ Call log:
   25 |     await page.locator("button:has-text('Save')").first().click();
   26 |     await expect(page).toHaveURL(/\/admin\/category/, { timeout: 15000 });
   27 | 
-  28 |     // New category may be on last page — navigate there and verify
-  29 |     const lastPageBtn = page.locator(".ant-pagination-item").last();
-  30 |     if (await lastPageBtn.isVisible()) {
-  31 |       await lastPageBtn.click();
-  32 |       await page.waitForLoadState("networkidle");
-  33 |     }
-  34 | 
-  35 |     await expect(
-  36 |       page.locator(".ant-table", { hasText: categoryName })
-> 37 |     ).toBeVisible({ timeout: 5000 });
+  28 |     // Wait for the table to finish loading (spinner must disappear)
+  29 |     await page.waitForFunction(
+  30 |       () => !document.querySelector(".ant-spin-nested-loading") ||
+  31 |         document.querySelector(".ant-spin") === null,
+  32 |       { timeout: 10000 }
+  33 |     );
+  34 |     await page.waitForLoadState("networkidle");
+  35 | 
+  36 |     // New category may be on last page — navigate there and verify
+  37 |     const lastPageBtn = page.locator(".ant-pagination-item").last();
+  38 |     if (await lastPageBtn.isVisible()) {
+  39 |       await lastPageBtn.click();
+  40 |       await page.waitForFunction(
+  41 |         () => !document.querySelector(".ant-spin-nested-loading") ||
+  42 |           document.querySelector(".ant-spin") === null,
+  43 |         { timeout: 10000 }
+  44 |       );
+  45 |     }
+  46 | 
+  47 |     await expect(
+  48 |       page.locator(".ant-table", { hasText: categoryName })
+> 49 |     ).toBeVisible({ timeout: 5000 });
      |       ^ Error: expect(locator).toBeVisible() failed
-  38 | 
-  39 |     // Cleanup — find the new category's Edit button and delete it
-  40 |     const moreBtns = page.locator('[aria-label="more"]');
-  41 |     const count = await moreBtns.count();
-  42 |     for (let i = 0; i < count; i++) {
-  43 |       await moreBtns.nth(i).click();
-  44 |       await expect(page.locator(".ant-dropdown")).toBeVisible({ timeout: 2000 });
-  45 |       const editItem = page.locator(".ant-dropdown-menu-item").filter({ hasText: /Edit/i });
-  46 |       if (await editItem.isVisible()) {
-  47 |         await editItem.click();
-  48 |         await expect(page).toHaveURL(/\/admin\/category\/\d+\/detail/, { timeout: 5000 });
-  49 |         const match = page.url().match(/\/category\/(\d+)\/detail/);
-  50 |         if (match) {
-  51 |           // Skip cleanup for seeded categories (IDs 1-9) to avoid 500 errors
-  52 |           const id = parseInt(match[1]);
-  53 |           if (id > 9) await cleanupCategory(page, id);
-  54 |         }
-  55 |         break;
-  56 |       }
-  57 |       await page.keyboard.press("Escape");
-  58 |     }
-  59 |   });
-  60 | 
-  61 |   test("category detail view is read-only", async ({ page }) => {
-  62 |     await page.goto("/admin/category");
-  63 |     await page.waitForLoadState("networkidle");
-  64 |     await page.locator('[aria-label="more"]').first().click();
-  65 |     await expect(page.locator(".ant-dropdown")).toBeVisible({ timeout: 3000 });
-  66 |     await page.locator(".ant-dropdown-menu-item").filter({ hasText: /Edit/i }).click();
-  67 |     await expect(page).toHaveURL(/\/admin\/category\/\d+\/detail/, { timeout: 5000 });
-  68 |     const disabledInputs = await page.locator("input[disabled]").count();
-  69 |     expect(disabledInputs).toBeGreaterThan(0);
-  70 |   });
-  71 | });
+  50 | 
+  51 |     // Cleanup — find the new category's Edit button and delete it
+  52 |     const moreBtns = page.locator('[aria-label="more"]');
+  53 |     const count = await moreBtns.count();
+  54 |     for (let i = 0; i < count; i++) {
+  55 |       await moreBtns.nth(i).click();
+  56 |       await expect(page.locator(".ant-dropdown")).toBeVisible({ timeout: 2000 });
+  57 |       const editItem = page.locator(".ant-dropdown-menu-item").filter({ hasText: /Edit/i });
+  58 |       if (await editItem.isVisible()) {
+  59 |         await editItem.click();
+  60 |         await expect(page).toHaveURL(/\/admin\/category\/\d+\/detail/, { timeout: 5000 });
+  61 |         const match = page.url().match(/\/category\/(\d+)\/detail/);
+  62 |         if (match) {
+  63 |           // Skip cleanup for seeded categories (IDs 1-9) to avoid 500 errors
+  64 |           const id = parseInt(match[1]);
+  65 |           if (id > 9) await cleanupCategory(page, id);
+  66 |         }
+  67 |         break;
+  68 |       }
+  69 |       await page.keyboard.press("Escape");
+  70 |     }
+  71 |   });
   72 | 
+  73 |   test("category detail view is read-only", async ({ page }) => {
+  74 |     await page.goto("/admin/category");
+  75 |     await page.waitForLoadState("networkidle");
+  76 |     await page.locator('[aria-label="more"]').first().click();
+  77 |     await expect(page.locator(".ant-dropdown")).toBeVisible({ timeout: 3000 });
+  78 |     await page.locator(".ant-dropdown-menu-item").filter({ hasText: /Edit/i }).click();
+  79 |     await expect(page).toHaveURL(/\/admin\/category\/\d+\/detail/, { timeout: 5000 });
+  80 |     const disabledInputs = await page.locator("input[disabled]").count();
+  81 |     expect(disabledInputs).toBeGreaterThan(0);
+  82 |   });
+  83 | });
+  84 | 
 ```

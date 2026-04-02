@@ -24,6 +24,10 @@ class WallpaperServices {
   static getWallpaperDetail(id: number) {
     return API.get<TWallpaper>(`${WallpaperServices.basePath}/find-by/${id}`);
   }
+
+  static deleteWallpaper(id: number) {
+    return API.delete(`${WallpaperServices.basePath}/${id}`);
+  }
 }
 
 export default WallpaperServices;
