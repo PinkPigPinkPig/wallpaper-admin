@@ -251,7 +251,7 @@ Then update `FormMedia` to forward `initialFiles` and `UploadMedia` to accept it
 
 ## Final Status: ALL TASKS COMPLETE ✅
 
-All 26 tasks (0–16 + UI-1 to UI-9) completed successfully.
+All 26 tasks (0–16 + UI-1 to UI-9) completed successfully. Build passes cleanly (`npm run build` ✅).
 
 ### BE Commits (file-management repo)
 | Commit | Message |
@@ -281,12 +281,14 @@ All 26 tasks (0–16 + UI-1 to UI-9) completed successfully.
 | `2c0ac9f` | style: visible drag handle, dashed upload button, alert warning on UploadMedia |
 | `d988633` | style: filter bar — card wrapper, clear filters, large inputs |
 | `88e9a57` | style: modal footer — antd buttons, loading state, proper layout |
+| `d85fc05` | fix: category create — 3-step upload flow (create empty → upload with real ID → update thumbUrl) |
 | `3f5a5d0` | test(e2e): add sample.png fixture for upload tests |
 | `7a143c0` | test(e2e): add helpers — login, cleanup, setAuthTokens |
 | `2753358` | test(e2e): add auth spec — login success, login fail, logout |
 | `aec3383` | test(e2e): add category spec — list, create with upload, detail view |
 | `5436358` | test(e2e): add wallpaper spec — list, create with upload, detail view |
 | `02c38d1` | test(e2e): add menu spec — list, create via modal, detail view |
+| `f3396f8` | fix: resolve all build/type errors — FormItem barrel, ellipsis type, originFileObj cast, TForm type, WallpaperTableFilter Input type |
 
 ## Next Steps
 
