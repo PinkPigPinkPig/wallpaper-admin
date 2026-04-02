@@ -18,6 +18,10 @@ export class MenuServices {
         return API.post<TMenu>(`${MenuServices.basePath}`, payload);
     }
 
+    static updateMenu(id: number, payload: TSaveMenuPayload) {
+        return API.put<TMenu>(`${MenuServices.basePath}/${id}`, payload);
+    }
+
     static getMenuDetail(id: number) {
         return API.get<TMenu>(`${MenuServices.basePath}/${id}`);
     }
