@@ -158,7 +158,7 @@ const WallpaperTable = () => {
 
   const columns: ColumnsType<TWallpaper> = [
     {
-      title: "No.",
+      title: "#",
       dataIndex: "id",
       sorter: false,
       render: (id, record, index) => (
@@ -191,6 +191,7 @@ const WallpaperTable = () => {
       render: (name) => name,
       key: "name",
       width: 171,
+      ellipsis: { tooltip: true },
     },
     {
       title: "Category",
@@ -200,7 +201,7 @@ const WallpaperTable = () => {
       width: 171,
     },
     {
-      title: "Linked Menu",
+      title: "Menus",
       dataIndex: "numberOfMenu",
       render: (numberOfMenu) => numberOfMenu,
       key: "numberOfMenu",

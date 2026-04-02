@@ -78,7 +78,7 @@ const MenuTable = () => {
   
     const columns: ColumnsType<TMenu> = [
       {
-        title: "No.",
+        title: "#",
         dataIndex: "id",
         sorter: false,
         render: (id, record, index) => (
@@ -126,6 +126,7 @@ const MenuTable = () => {
         render: (wallpaperName) => wallpaperName,
         key: "wallpaperName",
         width: 171,
+        ellipsis: { tooltip: true },
       },
       {
         title: "Category",
@@ -133,6 +134,7 @@ const MenuTable = () => {
         render: (categoryName) => categoryName,
         key: "categoryName",
         width: 171,
+        ellipsis: { tooltip: true },
       },
       {
         title: "Filter",

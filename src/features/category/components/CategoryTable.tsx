@@ -85,7 +85,7 @@ const CategoryTable = () => {
 
   const columns: ColumnsType<TCategory> = [
     {
-      title: "No.",
+      title: "#",
       dataIndex: "id",
       sorter: false,
       render: (id, record, index) => (
@@ -133,6 +133,7 @@ const CategoryTable = () => {
       render: (name) => name,
       key: "name",
       width: 171,
+      ellipsis: { tooltip: true },
     },
     {
       title: "Total Wallpaper",
