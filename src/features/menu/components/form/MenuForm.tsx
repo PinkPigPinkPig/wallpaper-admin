@@ -77,9 +77,9 @@ const MenuForm = forwardRef<TFormRef, MenuFormProps>(
           name="page"
           rules={[{ required: true, message: "Please enter page number" }]}
         >
-          <InputNumber 
-            placeholder="Enter page number" 
-            min={1}
+          <InputNumber
+            placeholder="Enter page number"
+            min={0}
             style={{ width: '100%' }}
           />
         </Form.Item>
