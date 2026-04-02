@@ -285,13 +285,121 @@ The real issue: on update, we need to send the existing `resourceUrl`/`thumbUrl`
 
 ---
 
-## Task 5: FE - Wallpaper Edit Client Component
+## Task 5: FE - UploadMedia: Pre-populate Existing Files (CRITICAL)
+
+**Files:**
+- Modify: `src/components/form/UploadMedia.tsx`
+- Modify: `src/components/form/FormMedia.tsx`
+
+**Problem:** `UploadMedia` manages `fileList` internally via a `useUpload` ref. It does NOT use the `fileList` prop passed from parent, so existing files from `initialValues` (for update mode) will not display.
+
+**Context from code analysis:**
+- `useUpload` at line 84: `const fileList = useRef<TFileList[]>([])`
+- Line 170: `<Upload fileList={mediaHandler.fileList} ...>` — always uses internal state, not `rest.fileList`
+- Line 63-69: `useEffect` syncs external `rest.fileList` → internal only when DIFFERENT (by uid comparison), so new files from parent don't auto-populate
+
+- [ ] **Step 1: Read UploadMedia and FormMedia**
+Read: `src/components/form/UploadMedia.tsx`
+Read: `src/components/form/FormMedia.tsx`
+
+- [ ] **Step 2: Add `initialFiles` prop to UploadMedia**
+
+In `UploadMedia.tsx`, add `initialFiles` to the destructured props (after `onFilesChange`):
+
+```tsx
+const UploadMedia = ({
+  // ... existing props
+  onFilesChange,
+  initialFiles,  // NEW: existing files from initialValues (update mode)
+  ...rest
+}: TProps) => {
+```
+
+In `TProps`, add:
+```tsx
+type TProps = Omit<UploadProps, 'onChange'> & {
+  // ... existing fields
+  initialFiles?: TFileType[];  // NEW
+};
+```
+
+- [ ] **Step 3: Initialize component with existing files**
+
+After the `useUpload()` call (around line 54), add a `useEffect` to populate the component with existing files when `initialFiles` is provided:
+
+```tsx
+// Populate with existing files on mount (for update mode)
+const { setFileList: setMediaFileList } = mediaHandler;
+useEffect(() => {
+  if (initialFiles && initialFiles.length > 0) {
+    const previewList: TFileList[] = initialFiles.map((file: TFileType, idx: number) => ({
+      ...file,
+      uid: (file as TFileList).uid || `initial-${idx}`,
+      url: file.url || (file as TFileList).thumbUrl || '',
+      status: 'done' as const,
+    }));
+    setMediaFileList(previewList);
+    setLocalFiles(initialFiles);
+    // Also notify parent via onFilesChange
+    if (onFilesChange) onFilesChange(initialFiles);
+  }
+}, [initialFiles]);
+```
+
+Note: `setFileList` is not directly exposed by `useUpload`. Instead, use `mediaHandler.setFileList` by calling it via the returned `setFileList` reference. Check what `useUpload` returns at line 324 — if it returns `setFileList` in the return object, use it. If not, add it.
+
+If `setFileList` is not exported from `useUpload`, add it to the return:
+```tsx
+return {
+  fileList: fileList.current,
+  setFileList,    // ADD THIS LINE
+  beforeUpload,
+  upload,
+  normFile,
+  EditFileButton,
+  avatarUploadClassName,
+};
+```
+
+- [ ] **Step 4: Forward `initialFiles` from FormMedia**
+
+In `FormMedia.tsx`, add `initialFiles` to the props interface and forward it to `UploadMedia`:
+
+```tsx
+interface IProps<TForm> extends FormItemProps {
+  // ... existing
+  initialFiles?: TFileType[];  // ADD
+}
+
+const FormMedia = <TForm,>({
+  // ... existing destructuring
+  initialFiles,  // ADD
+  ...rest
+}: IProps<TForm>) => {
+  // ...
+  <UploadMedia
+    {...rest}
+    initialFiles={initialFiles}  // ADD
+  />
+};
+```
+
+- [ ] **Step 5: Test — verify upload component shows existing files in update mode**
+
+This cannot be tested in isolation without the running app. The e2e tests will verify this. Proceed to Task 6 to wire it up.
+
+- [ ] **Step 6: Commit**
+
+---
+
+## Task 6: FE - Wallpaper Edit Client Component
 
 **Frontend file:** `/Users/tuanvq/Documents/Projects/Personal/wallpaper/wallpaper-admin/src/app/(protected)/admin/wallpaper/[id]/detail/WallpaperDetailClient.tsx`
 
 **Context:**
 - Currently read-only detail page
 - Need to add edit mode: when "Edit" button clicked, form becomes editable with Save/Cancel
+- `UploadMedia` now supports `initialFiles` (Task 5)
 
 - [ ] **Step 1: Read current WallpaperDetailClient**
 Read: `src/app/(protected)/admin/wallpaper/[id]/detail/WallpaperDetailClient.tsx`

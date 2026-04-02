@@ -150,13 +150,18 @@ export type TSaveWallpaperPayload = {
 
 Full plan at: `docs/superpowers/plans/2026-04-02-fe-update-crud-e2e-plan.md`
 
-**16 tasks:**
+**17 tasks (0-16):**
 - Task 0: Verify prerequisites
 - Task 1-2: BE fixes (category update/delete orphan thumb)
-- Task 3-5: FE wallpaper update
-- Task 6-7: FE category update + table fix
-- Task 8-9: FE menu update + table fix
-- Task 10-15: E2E tests (fixture, helpers, auth, category, wallpaper, menu)
+- Task 3: FE wallpaper update service
+- Task 4: FE WallpaperForm submit logic (keep existing URLs when no new file)
+- Task 5: FE UploadMedia pre-populate existing files (CRITICAL)
+- Task 6: FE wallpaper edit client component
+- Task 7: FE category update service
+- Task 8: FE category edit client + table link fix
+- Task 9: FE menu update service
+- Task 10: FE menu detail edit mode + table link fix
+- Task 11-16: E2E tests (fixture, helpers, auth, category, wallpaper, menu)
 
 ---
 
@@ -189,10 +194,44 @@ npx playwright test --reporter=line
 `src/lib/service/index.ts` line 164 — no need to add
 
 ### ButtonSave/ButtonCancel
-`ButtonSave` and `ButtonCancel` from `@/components/form/` — may need to check if they accept `onClick` prop or only `href`. If only `href`, use plain `<button>` styled as ant-btn.
+Both spread `ButtonProps` from Ant Design — they support both `onClick` and `href`:
+```tsx
+const ButtonSave = (props: ButtonProps) => <Button {...props} type="primary">...
+const ButtonCancel = ({ text = 'Cancel', ...props }: TProps) => <Button {...props}>...
+```
+Safe to use `<ButtonSave onClick={...} />` and `<ButtonCancel onClick={...} />` in edit mode.
 
 ### ForwardRef forms
 `WallpaperForm`, `CategoryForm`, `MenuForm` all use `forwardRef` + `useImperativeHandle` to expose `submit()`. Wire up via `ref.current?.submit()`.
+
+### UploadMedia does NOT pre-populate existing files ⚠️ CRITICAL
+
+**File:** `src/components/form/UploadMedia.tsx`
+
+**Problem:** `UploadMedia` manages `fileList` internally via `useUpload` hook (ref-based). The `fileList` prop passed to Ant Design's `<Upload>` is always `mediaHandler.fileList` — not the `rest.fileList` prop. So when `initialValues` contains existing `resourceFiles`/`thumbFiles`, the upload component shows as **empty**.
+
+**Fix needed in plan:** Before `WallpaperDetailClient` and `CategoryDetailClient`, add a task to modify `UploadMedia` to accept and display existing files:
+
+```tsx
+// In UploadMedia.tsx, add:
+const { initialFiles, ...restProps } = props;
+
+// After useUpload() call, add:
+useEffect(() => {
+  if (initialFiles && initialFiles.length > 0) {
+    const previewList = initialFiles.map((file: TFileType) => ({
+      ...file,
+      uid: file.uid ?? `initial-${Date.now()}`,
+      url: file.url ?? file.thumbUrl ?? '',
+      status: 'done' as const,
+    }));
+    mediaHandler.setFileList(previewList);
+    setLocalFiles(initialFiles);
+  }
+}, [initialFiles, mediaHandler]);
+```
+
+Then update `FormMedia` to forward `initialFiles` and `UploadMedia` to accept it.
 
 ### MenuForm is read-only detail
 `MenuForm` in `src/features/menu/components/form/MenuForm.tsx` — for the detail page edit mode, reuse this form with a ref.
