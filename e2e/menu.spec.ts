@@ -26,8 +26,8 @@ test.describe("Menu", () => {
     await page.locator("button:has-text('Save')").first().click();
     await expect(page).toHaveURL(/\/admin\/wallpaper/, { timeout: 15000 });
 
-    // Open Create Menu modal via more dropdown
-    await page.waitForLoadState("networkidle");
+    // Open Create Menu modal via more dropdown — wait for More button to render
+    await page.waitForSelector('[aria-label="more"]', { timeout: 10000 });
     await page.locator('[aria-label="more"]').first().click();
     await expect(page.locator(".ant-dropdown")).toBeVisible({ timeout: 3000 });
     await page.locator(".ant-dropdown-menu-item").filter({ hasText: /create menu/i }).click();

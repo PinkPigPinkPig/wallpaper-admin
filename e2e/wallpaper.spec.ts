@@ -33,14 +33,26 @@ test.describe("Wallpaper", () => {
     await page.locator("button:has-text('Save')").first().click();
     await expect(page).toHaveURL(/\/admin\/wallpaper/, { timeout: 15000 });
 
-    // New wallpaper is on the last page (3339+ items) — go to last page
+    // Wait for the table to finish loading
+    await page.waitForFunction(
+      () => !document.querySelector(".ant-spin-nested-loading") ||
+        document.querySelector(".ant-spin") === null,
+      { timeout: 10000 }
+    );
+    await page.waitForLoadState("networkidle");
+
+    // Navigate to last page (wallpaper list has 3339+ items, new entry lands last)
     const lastPageBtn = page.locator(".ant-pagination-item").last();
     if (await lastPageBtn.isVisible()) {
       await lastPageBtn.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForFunction(
+        () => !document.querySelector(".ant-spin-nested-loading") ||
+          document.querySelector(".ant-spin") === null,
+        { timeout: 10000 }
+      );
     }
 
-    // Verify name appears
+    // Verify name appears in table
     await expect(
       page.locator(".ant-table", { hasText: wallpaperName })
     ).toBeVisible({ timeout: 5000 });

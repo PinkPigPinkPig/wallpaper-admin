@@ -25,11 +25,23 @@ test.describe("Category", () => {
     await page.locator("button:has-text('Save')").first().click();
     await expect(page).toHaveURL(/\/admin\/category/, { timeout: 15000 });
 
+    // Wait for the table to finish loading (spinner must disappear)
+    await page.waitForFunction(
+      () => !document.querySelector(".ant-spin-nested-loading") ||
+        document.querySelector(".ant-spin") === null,
+      { timeout: 10000 }
+    );
+    await page.waitForLoadState("networkidle");
+
     // New category may be on last page — navigate there and verify
     const lastPageBtn = page.locator(".ant-pagination-item").last();
     if (await lastPageBtn.isVisible()) {
       await lastPageBtn.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForFunction(
+        () => !document.querySelector(".ant-spin-nested-loading") ||
+          document.querySelector(".ant-spin") === null,
+        { timeout: 10000 }
+      );
     }
 
     await expect(

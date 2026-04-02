@@ -1,8 +1,10 @@
 import { Page } from "@playwright/test";
 import path from "path";
 
-// Prod API base
-export const API_BASE = "https://freshness-wallpaper.xyz/api/v1";
+// API base — set E2E_API_BASE=http://localhost:3001/api/v1 for local,
+// defaults to prod freshness-wallpaper.xyz otherwise
+export const API_BASE =
+  process.env.E2E_API_BASE ?? "https://freshness-wallpaper.xyz/api/v1";
 
 // Seeded admin credentials (from prisma/seed/index.ts)
 export const ADMIN_USERNAME = "admin";

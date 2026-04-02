@@ -40,18 +40,22 @@ export default function PageCreateCategory() {
   };
 
   const onSubmit = async (values: TCategoryForm) => {
+    console.log("[category/create] onSubmit called with:", values);
     setIsUploading(true);
     try {
       // Step 1: Create category with empty thumbUrl so BE creates the DB record and folder path
       const createPayload: TSaveCategoryPayload = { name: values.name, thumbUrl: "" };
       const created = await CategoryServices.addCategory(createPayload);
+      console.log("[category/create] category created:", created);
       const categoryId = (created as { id: number }).id;
 
       // Step 2: Upload thumbnail with real categoryId + name
       let thumbUrl = "";
       const thumbFile = values.thumbFiles?.[0];
+      console.log("[category/create] thumbFile:", thumbFile ? "present" : "missing");
       if (thumbFile) {
         thumbUrl = await uploadFile(thumbFile, values.name || "category", categoryId);
+        console.log("[category/create] thumb uploaded:", thumbUrl);
       }
 
       // Step 3: Update category with thumbnail URL
@@ -62,9 +66,10 @@ export default function PageCreateCategory() {
         });
       }
 
-      // Invalidate cache and redirect directly — do NOT rely on useMutation onSuccess
+      // Invalidate cache and redirect directly
       queryClient.invalidateQueries({ queryKey: [CATEGORY.LIST] });
       showSuccessToast("save", CATEGORY.LIST, "Category saved");
+      console.log("[category/create] navigating to /admin/category");
       router.push("/admin/category");
     } catch (error) {
       console.error("Form submission error:", error);

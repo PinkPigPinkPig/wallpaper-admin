@@ -1,12 +1,12 @@
 import { defineConfig } from '@playwright/test';
 
-// Prod config — runs against Vercel FE and freshness-wallpaper.xyz BE
-// Pass env vars explicitly or let helpers.ts read them from process.env
+// Local config — runs against localhost FE (npm run dev on port 3005)
+// and localhost BE (docker compose up on port 3001)
 export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? 'https://wallpaper-admin-five.vercel.app',
+    baseURL: 'http://localhost:3005',
     headless: true,
   },
   projects: [
