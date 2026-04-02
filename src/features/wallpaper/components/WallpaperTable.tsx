@@ -8,7 +8,7 @@ import {
 import React, { useRef, useState } from "react";
 import useGetWallpaperList from "../hooks/useGetWallpaperList";
 import { Button, Dropdown, Flex, MenuProps, Modal } from "antd";
-import { TWallpaper } from "../data/type";
+import { TWallpaper, WALLPAPER } from "../data/type";
 import { TMimeType, TFormRef } from "@/data/type";
 import Link, {
   TLinkHref,
@@ -25,6 +25,7 @@ import { TSaveMenuPayload } from "@/features/menu/data/type";
 import { IResponseError } from '@/lib/service/utility';
 import MenuServices from "@/features/menu/services";
 import WallpaperServices from "@/features/wallpaper/services";
+import { MENU } from "@/features/menu/data/type";
 
 const WallpaperTable = () => {
   const searchParams = useSearchParams();
@@ -64,7 +65,7 @@ const WallpaperTable = () => {
   const onMenuCreateSuccess = () => {
     showSuccessToast('create', 'menu-list', 'Menu created');
     queryClient.invalidateQueries({
-      queryKey: ["menu-list"],
+      predicate: (query) => query.queryKey[0] === MENU.LIST,
     });
     setIsModalOpen(false);
     setSelectedWallpaper(null);
@@ -93,10 +94,12 @@ const WallpaperTable = () => {
     createMenu(payload);
   };
 
-  // Delete wallpaper
+  // Delete wallpaper — invalidate by prefix to refetch all pages
   const handleDeleteSuccess = () => {
-    showSuccessToast('delete', 'wallpaper-list', 'Wallpaper deleted');
-    queryClient.invalidateQueries({ queryKey: ['wallpaper-list'] });
+    showSuccessToast('delete', WALLPAPER.LIST, 'Wallpaper deleted');
+    queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey[0] === WALLPAPER.LIST,
+    });
     setDeleteTarget(null);
   };
 
