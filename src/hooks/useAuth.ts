@@ -34,7 +34,14 @@ export const useAuth = () => {
     try {
       console.log('Login attempt for:', username);
       
-      const response = await fetch('/api/auth/login', {
+      // Call the backend directly from the browser (not the Next.js /api route).
+      // The app is served from Vercel (US) but the backend (freshness-wallpaper.xyz)
+      // only accepts connections from Vietnam, so the request must originate from
+      // the user's browser rather than the Vercel serverless function.
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ??
+        'https://freshness-wallpaper.xyz/api/v1';
+      const response = await fetch(`${apiBaseUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +58,7 @@ export const useAuth = () => {
       });
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.message || data.error || 'Login failed');
       }
 
       // Store tokens and user data in localStorage
